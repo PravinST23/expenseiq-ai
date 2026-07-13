@@ -5,6 +5,8 @@ Author: Pravin Shanmugavel
 Project: ExpenseIQ
 """
 
+from uuid import UUID
+
 from sqlalchemy.orm import Session
 
 from app.models.employee import Employee
@@ -40,6 +42,34 @@ class EmployeeRepository(BaseRepository[Employee]):
             .filter(Employee.email == email)
             .first()
         )
+
+    def get_by_id(
+        self,
+        db: Session,
+        employee_id: UUID,
+    ):
+        return (
+            db.query(Employee)
+            .filter(Employee.id == employee_id)
+            .first()
+        )
+
+    def update(
+        self,
+        db: Session,
+        employee: Employee,
+    ):
+        db.commit()
+        db.refresh(employee)
+        return employee
+
+    def delete(
+        self,
+        db: Session,
+        employee: Employee,
+    ):
+        db.delete(employee)
+        db.commit()
 
 
 employee_repository = EmployeeRepository()

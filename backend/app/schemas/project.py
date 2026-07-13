@@ -11,20 +11,37 @@ from uuid import UUID
 
 from pydantic import BaseModel
 from pydantic import ConfigDict
+from pydantic import Field
 
 
 class ProjectBase(BaseModel):
     """
-    Common Project fields.
+    Common Project Fields.
     """
 
-    project_code: str
-    project_name: str
-    client_name: str
+    project_code: str = Field(
+        ...,
+        examples=["PRJ001"],
+    )
+
+    project_name: str = Field(
+        ...,
+        examples=["ExpenseIQ"],
+    )
+
+    client_name: str = Field(
+        ...,
+        examples=["Internal"],
+    )
+
     project_description: str | None = None
+
     start_date: date | None = None
+
     end_date: date | None = None
+
     project_manager: str | None = None
+
     project_budget: Decimal | None = None
 
 
@@ -34,6 +51,7 @@ class ProjectCreate(ProjectBase):
 
 class ProjectUpdate(BaseModel):
 
+    project_code: str | None = None
     project_name: str | None = None
     client_name: str | None = None
     project_description: str | None = None

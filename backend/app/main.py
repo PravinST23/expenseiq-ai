@@ -9,6 +9,7 @@ from fastapi import FastAPI
 
 from app.api.router import api_router
 from app.config.settings import settings
+from app.exceptions.handlers import register_exception_handlers
 
 app = FastAPI(
     title=settings.APP_NAME,
@@ -18,6 +19,9 @@ app = FastAPI(
     redoc_url="/redoc",
 )
 
+# Register Global Exception Handlers
+register_exception_handlers(app)
+
 # Register API Routes
 app.include_router(api_router)
 
@@ -25,7 +29,7 @@ app.include_router(api_router)
 @app.get(
     "/",
     tags=["Home"],
-    summary="Application Information"
+    summary="Application Information",
 )
 def home():
 
@@ -33,17 +37,18 @@ def home():
         "application": settings.APP_NAME,
         "version": settings.APP_VERSION,
         "status": "Running",
-        "message": "Welcome to ExpenseIQ Backend API"
+        "message": "Welcome to ExpenseIQ Backend API",
     }
 
 
 @app.get(
     "/health",
     tags=["Health"],
-    summary="Health Check"
+    summary="Health Check",
 )
 def health():
 
     return {
-        "status": "Healthy"
+        "status": "Healthy",
+        "message": "Application is running successfully.",
     }
