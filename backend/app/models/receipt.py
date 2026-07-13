@@ -7,9 +7,9 @@ Project: ExpenseIQ
 
 from __future__ import annotations
 
-import uuid
 from typing import TYPE_CHECKING
 
+from sqlalchemy import BigInteger
 from sqlalchemy import ForeignKey
 from sqlalchemy import String
 from sqlalchemy.orm import Mapped
@@ -24,23 +24,29 @@ if TYPE_CHECKING:
 
 class Receipt(BaseModel):
     """
-    Receipt uploaded by the employee.
+    Receipt Master Table.
     """
 
     __tablename__ = "receipts"
 
-    expense_id: Mapped[uuid.UUID] = mapped_column(
-        ForeignKey("expenses.id"),
+    receipt_number: Mapped[str] = mapped_column(
+        String(30),
         unique=True,
+        index=True,
         nullable=False,
     )
 
-    original_file_name: Mapped[str] = mapped_column(
+    expense_id: Mapped[str] = mapped_column(
+        ForeignKey("expenses.id"),
+        nullable=False,
+    )
+
+    original_filename: Mapped[str] = mapped_column(
         String(255),
         nullable=False,
     )
 
-    stored_file_name: Mapped[str] = mapped_column(
+    stored_filename: Mapped[str] = mapped_column(
         String(255),
         nullable=False,
     )
@@ -51,11 +57,22 @@ class Receipt(BaseModel):
     )
 
     file_type: Mapped[str] = mapped_column(
-        String(20),
+        String(50),
+        nullable=False,
+    )
+
+    file_size: Mapped[int] = mapped_column(
+        BigInteger,
+        nullable=False,
+    )
+
+    upload_status: Mapped[str] = mapped_column(
+        String(30),
+        default="Uploaded",
         nullable=False,
     )
 
     expense: Mapped["Expense"] = relationship(
         "Expense",
-        back_populates="receipt",
+        back_populates="receipts",
     )

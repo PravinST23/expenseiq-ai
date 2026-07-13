@@ -4,3 +4,4 @@ from app.repositories.expense_repository import expense_repository
 from app.repositories.receipt_repository import receipt_repository
 from app.repositories.duplicate_check_repository import duplicate_check_repository
 from app.repositories.compliance_check_repository import compliance_check_repository
+from app.repositories.approval_repository import approval_repository

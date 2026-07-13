@@ -27,6 +27,7 @@ if TYPE_CHECKING:
     from app.models.employee import Employee
     from app.models.project import Project
     from app.models.receipt import Receipt
+    from app.models.approval import ExpenseApproval
     from app.models.duplicate_check import DuplicateCheck
     from app.models.compliance_check import ComplianceCheck
 
@@ -97,6 +98,10 @@ class Expense(BaseModel):
         nullable=False,
     )
 
+    # ---------------------------------------------------------
+    # Relationships
+    # ---------------------------------------------------------
+
     employee: Mapped["Employee"] = relationship(
         "Employee",
         back_populates="expenses",
@@ -107,10 +112,16 @@ class Expense(BaseModel):
         back_populates="expenses",
     )
 
-    receipt: Mapped["Receipt"] = relationship(
+    receipts: Mapped[list["Receipt"]] = relationship(
         "Receipt",
         back_populates="expense",
-        uselist=False,
+        cascade="all, delete-orphan",
+    )
+
+    approvals: Mapped[list["ExpenseApproval"]] = relationship(
+        "ExpenseApproval",
+        back_populates="expense",
+        cascade="all, delete-orphan",
     )
 
     duplicate_check: Mapped["DuplicateCheck"] = relationship(

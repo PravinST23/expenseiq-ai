@@ -4,3 +4,4 @@ from app.services.expense_service import expense_service
 from app.services.receipt_service import receipt_service
 from app.services.duplicate_check_service import duplicate_check_service
 from app.services.compliance_check_service import compliance_check_service
+from app.services.approval_service import approval_service

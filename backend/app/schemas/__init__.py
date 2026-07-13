@@ -4,3 +4,4 @@ from app.schemas.expense import *
 from app.schemas.receipt import *
 from app.schemas.duplicate_check import *
 from app.schemas.compliance_check import *
+from app.schemas.approval import *
