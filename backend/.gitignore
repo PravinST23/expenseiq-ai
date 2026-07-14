@@ -1,5 +1,6 @@
-# Environment
+# Environment files
 .env
+.env.*
 
 # Python
 .venv/
