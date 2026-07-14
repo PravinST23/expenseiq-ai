@@ -150,7 +150,20 @@ async def upload_receipt(
     db: Session = Depends(get_db),
 ):
 
-    uploaded = await save_receipt(file)
+    try:
+
+        uploaded = await save_receipt(
+            file,
+        )
+
+    except ValueError as ex:
+
+        from fastapi import HTTPException
+
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(ex),
+        )
 
     receipt = ReceiptCreate(
         receipt_number=receipt_number,

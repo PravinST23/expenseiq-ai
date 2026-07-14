@@ -36,6 +36,8 @@ class Settings(BaseSettings):
     POSTGRES_PASSWORD: str
     GEMINI_API_KEY: str
     GROQ_API_KEY: str
+    OLLAMA_HOST: str
+    OLLAMA_MODEL: str
 
     @property
     def DATABASE_URL(self) -> str:

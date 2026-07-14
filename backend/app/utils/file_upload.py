@@ -41,10 +41,12 @@ async def save_receipt(
         UPLOAD_DIRECTORY / unique_name
     )
 
+    contents = await file.read()
+
     with open(destination, "wb") as buffer:
-        buffer.write(
-            await file.read()
-        )
+        buffer.write(contents)
+
+    await file.close()
 
     return {
         "original_filename": file.filename,

@@ -8,6 +8,7 @@ Project: ExpenseIQ
 from app.ai.gemini_service import gemini_service
 from app.ai.groq_service import groq_service
 from app.ai.ocr_service import ocr_service
+from app.ai.ollama_service import ollama_service
 from app.langchain.output_parser import output_parser
 from app.workflow.approval_workflow import approval_workflow
 
@@ -20,10 +21,18 @@ class ExpensePipeline:
     def process_receipt(
         self,
         image_path: str,
+        provider: str = "gemini",
     ) -> dict:
         """
         Process receipt through
-        OCR -> Gemini -> Groq -> Approval Workflow
+
+        OCR
+            ↓
+        Gemini / Ollama
+            ↓
+        Groq
+            ↓
+        Approval Workflow
         """
 
         # -------------------------------------------------
@@ -43,26 +52,42 @@ class ExpensePipeline:
             ocr_text = ""
 
         # -------------------------------------------------
-        # Gemini
+        # AI Receipt Extraction
         # -------------------------------------------------
 
         try:
 
-            gemini_result = gemini_service.extract_receipt(
-                image_path,
-            )
+            if provider.lower() == "ollama":
+
+                print("\nUsing Ollama...\n")
+
+                ai_result = (
+                    ollama_service.extract_receipt(
+                        image_path,
+                    )
+                )
+
+            else:
+
+                print("\nUsing Gemini...\n")
+
+                ai_result = (
+                    gemini_service.extract_receipt(
+                        image_path,
+                    )
+                )
 
             structured_result = output_parser.parse(
-                gemini_result,
+                ai_result,
             )
 
-            gemini_success = True
+            ai_success = True
 
         except Exception as ex:
 
-            print(f"Gemini Error : {ex}")
+            print(f"AI Extraction Error : {ex}")
 
-            gemini_success = False
+            ai_success = False
 
             structured_result = {
                 "merchant_name": None,
@@ -84,15 +109,17 @@ class ExpensePipeline:
         # -------------------------------------------------
 
         if (
-            gemini_success
+            ai_success
             and structured_result.get("total_amount") is not None
             and structured_result.get("expense_category") is not None
         ):
 
             try:
 
-                policy_result = groq_service.validate_expense(
-                    structured_result,
+                policy_result = (
+                    groq_service.validate_expense(
+                        structured_result,
+                    )
                 )
 
             except Exception as ex:
@@ -101,7 +128,9 @@ class ExpensePipeline:
 
                 policy_result = {
                     "status": "UNKNOWN",
-                    "reason": "Policy validation failed.",
+                    "reason": (
+                        "Policy validation could not be completed."
+                    ),
                     "requires_manager_approval": True,
                 }
 
@@ -152,8 +181,12 @@ class ExpensePipeline:
             policy_result["reason"]
         )
 
-        structured_result["requires_manager_approval"] = (
-            policy_result["requires_manager_approval"]
+        structured_result[
+            "requires_manager_approval"
+        ] = (
+            policy_result[
+                "requires_manager_approval"
+            ]
         )
 
         structured_result["approval_status"] = (
@@ -163,6 +196,8 @@ class ExpensePipeline:
         structured_result["approved_by"] = (
             approval_result["approved_by"]
         )
+
+        structured_result["ai_provider"] = provider
 
         return structured_result
 
