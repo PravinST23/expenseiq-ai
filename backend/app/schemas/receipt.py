@@ -5,6 +5,7 @@ Author: Pravin Shanmugavel
 Project: ExpenseIQ
 """
 
+from datetime import datetime
 from uuid import UUID
 
 from pydantic import BaseModel
@@ -36,10 +37,16 @@ class ReceiptBase(BaseModel):
 
 
 class ReceiptCreate(ReceiptBase):
+    """
+    Request schema for creating a receipt.
+    """
     pass
 
 
 class ReceiptUpdate(BaseModel):
+    """
+    Request schema for updating a receipt.
+    """
 
     original_filename: str | None = None
 
@@ -53,12 +60,43 @@ class ReceiptUpdate(BaseModel):
 
     upload_status: str | None = None
 
+    # OCR Fields
+
+    ocr_text: str | None = None
+
+    ocr_status: str | None = None
+
+    ocr_processed_at: datetime | None = None
+
+    # AI Fields
+
+    ai_status: str | None = None
+
+    extracted_json: str | None = None
+
 
 class ReceiptResponse(ReceiptBase):
+    """
+    Response schema.
+    """
 
     id: UUID
 
     upload_status: str
+
+    # OCR Fields
+
+    ocr_text: str | None
+
+    ocr_status: str
+
+    ocr_processed_at: datetime | None
+
+    # AI Fields
+
+    ai_status: str
+
+    extracted_json: str | None
 
     model_config = ConfigDict(
         from_attributes=True

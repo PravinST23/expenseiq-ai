@@ -5,12 +5,15 @@ Author: Pravin Shanmugavel
 Project: ExpenseIQ
 """
 
+import json
+from datetime import datetime
 from uuid import UUID
 
 from fastapi import HTTPException
 from fastapi import status
 from sqlalchemy.orm import Session
 
+from app.langchain.expense_pipeline import expense_pipeline
 from app.models.receipt import Receipt
 from app.repositories.receipt_repository import receipt_repository
 from app.schemas.receipt import ReceiptCreate
@@ -57,32 +60,77 @@ class ReceiptService:
         receipt: ReceiptCreate,
     ):
         """
-        Save uploaded receipt metadata into the database.
+        Upload receipt and process using AI pipeline.
         """
 
-        return self.create_receipt(
+        # -------------------------------------------------
+        # Save Receipt Metadata
+        # -------------------------------------------------
+
+        new_receipt = self.create_receipt(
             db,
             receipt,
+        )
+
+        # -------------------------------------------------
+        # LangChain Expense Pipeline
+        # -------------------------------------------------
+
+        try:
+
+            result = expense_pipeline.process_receipt(
+                new_receipt.file_path,
+            )
+
+            # OCR Results
+
+            new_receipt.ocr_text = result.get(
+                "ocr_text",
+            )
+
+            new_receipt.ocr_status = "Completed"
+
+            new_receipt.ocr_processed_at = datetime.utcnow()
+
+            # AI Results
+
+            new_receipt.extracted_json = json.dumps(
+                result,
+                indent=4,
+            )
+
+            new_receipt.ai_status = "Completed"
+
+        except Exception as ex:
+
+            print(f"Pipeline Error : {ex}")
+
+            new_receipt.ocr_status = "Failed"
+            new_receipt.ai_status = "Failed"
+
+        # -------------------------------------------------
+        # Save Results
+        # -------------------------------------------------
+
+        return receipt_repository.update(
+            db,
+            new_receipt,
         )
 
     def get_all(
         self,
         db: Session,
     ):
-        """
-        Get all receipts.
-        """
 
-        return receipt_repository.get_all(db)
+        return receipt_repository.get_all(
+            db,
+        )
 
     def get_by_id(
         self,
         db: Session,
         receipt_id: UUID,
     ):
-        """
-        Get receipt by ID.
-        """
 
         receipt = receipt_repository.get_by_id(
             db,
@@ -90,6 +138,7 @@ class ReceiptService:
         )
 
         if receipt is None:
+
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="Receipt not found.",
@@ -103,9 +152,6 @@ class ReceiptService:
         receipt_id: UUID,
         receipt_update: ReceiptUpdate,
     ):
-        """
-        Update receipt details.
-        """
 
         receipt = self.get_by_id(
             db,
@@ -117,6 +163,7 @@ class ReceiptService:
         )
 
         for key, value in update_data.items():
+
             setattr(
                 receipt,
                 key,
@@ -133,9 +180,6 @@ class ReceiptService:
         db: Session,
         receipt_id: UUID,
     ):
-        """
-        Delete a receipt.
-        """
 
         receipt = self.get_by_id(
             db,

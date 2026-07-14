@@ -7,11 +7,14 @@ Project: ExpenseIQ
 
 from __future__ import annotations
 
+from datetime import datetime
 from typing import TYPE_CHECKING
 
 from sqlalchemy import BigInteger
+from sqlalchemy import DateTime
 from sqlalchemy import ForeignKey
 from sqlalchemy import String
+from sqlalchemy import Text
 from sqlalchemy.orm import Mapped
 from sqlalchemy.orm import mapped_column
 from sqlalchemy.orm import relationship
@@ -71,6 +74,45 @@ class Receipt(BaseModel):
         default="Uploaded",
         nullable=False,
     )
+
+    # ---------------------------------------------------------
+    # OCR Fields
+    # ---------------------------------------------------------
+
+    ocr_text: Mapped[str | None] = mapped_column(
+        Text,
+        nullable=True,
+    )
+
+    ocr_status: Mapped[str] = mapped_column(
+        String(20),
+        default="Pending",
+        nullable=False,
+    )
+
+    ocr_processed_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True,
+    )
+
+    # ---------------------------------------------------------
+    # AI Fields (Future - Gemini)
+    # ---------------------------------------------------------
+
+    ai_status: Mapped[str] = mapped_column(
+        String(20),
+        default="Pending",
+        nullable=False,
+    )
+
+    extracted_json: Mapped[str | None] = mapped_column(
+        Text,
+        nullable=True,
+    )
+
+    # ---------------------------------------------------------
+    # Relationship
+    # ---------------------------------------------------------
 
     expense: Mapped["Expense"] = relationship(
         "Expense",
