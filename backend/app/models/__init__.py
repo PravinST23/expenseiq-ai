@@ -5,3 +5,4 @@ from app.models.receipt import Receipt
 from app.models.duplicate_check import DuplicateCheck
 from app.models.compliance_check import ComplianceCheck
 from app.models.approval import ExpenseApproval
+from app.models.ai_review import AIAnalysis

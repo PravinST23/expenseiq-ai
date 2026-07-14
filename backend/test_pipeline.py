@@ -13,6 +13,6 @@ result = expense_pipeline.process_receipt(
     "uploads/receipts/45d67a16fc1b4d819eebf73466d2f004.jpg"
 )
 
-print("\n===== PIPELINE RESULT =====\n")
+print("\n========== COMPLETE PIPELINE ==========\n")
 
 pprint(result)

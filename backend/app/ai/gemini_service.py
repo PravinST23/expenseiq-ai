@@ -54,6 +54,7 @@ class GeminiService:
 
             response = self.client.models.generate_content(
                 model="models/gemini-flash-latest",
+                #model="models/gemini-2.0-flash",
                 contents=[
                     RECEIPT_EXTRACTION_PROMPT,
                     uploaded_file,

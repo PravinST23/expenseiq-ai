@@ -16,6 +16,7 @@ from sqlalchemy import ForeignKey
 from sqlalchemy import String
 from sqlalchemy import Text
 from sqlalchemy.orm import Mapped
+from app.models.ai_review import AIAnalysis
 from sqlalchemy.orm import mapped_column
 from sqlalchemy.orm import relationship
 
@@ -73,6 +74,11 @@ class Receipt(BaseModel):
         String(30),
         default="Uploaded",
         nullable=False,
+    )
+
+    ai_reviews: Mapped[list["AIAnalysis"]] = relationship(
+        "AIAnalysis",
+        back_populates="receipt",
     )
 
     # ---------------------------------------------------------

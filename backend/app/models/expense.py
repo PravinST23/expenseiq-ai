@@ -21,6 +21,7 @@ from sqlalchemy.orm import Mapped
 from sqlalchemy.orm import mapped_column
 from sqlalchemy.orm import relationship
 
+from app.models.ai_review import AIAnalysis
 from app.models.base_model import BaseModel
 
 if TYPE_CHECKING:
@@ -98,6 +99,11 @@ class Expense(BaseModel):
         nullable=False,
     )
 
+    ai_reviews: Mapped[list["AIAnalysis"]] = relationship(
+        "AIAnalysis",
+        back_populates="expense",
+    )
+
     # ---------------------------------------------------------
     # Relationships
     # ---------------------------------------------------------
@@ -135,3 +141,5 @@ class Expense(BaseModel):
         back_populates="expense",
         uselist=False,
     )
+
+    
