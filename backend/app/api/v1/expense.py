@@ -15,9 +15,12 @@ from fastapi import status
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_db
+from app.api.deps import require_roles
+from app.models.employee import Employee
 from app.schemas.expense import ExpenseCreate
 from app.schemas.expense import ExpenseResponse
 from app.schemas.expense import ExpenseUpdate
+from app.schemas.expense import ReimbursementUpdate
 from app.services.expense_service import expense_service
 
 router = APIRouter(
@@ -106,4 +109,30 @@ def delete_expense(
 
     return Response(
         status_code=status.HTTP_204_NO_CONTENT,
+    )
+
+
+@router.patch(
+    "/{expense_id}/reimbursement",
+    response_model=ExpenseResponse,
+    summary="Advance Reimbursement State",
+    description=(
+        "Protected - only L2 Finance / L3 CFO can mark a claim's "
+        "reimbursement as PAID."
+    ),
+)
+def update_reimbursement(
+    expense_id: UUID,
+    reimbursement: ReimbursementUpdate,
+    db: Session = Depends(get_db),
+    current_employee: Employee = Depends(
+        require_roles("L2_FINANCE", "L3_CFO")
+    ),
+):
+
+    return expense_service.update_reimbursement(
+        db,
+        expense_id,
+        reimbursement,
+        current_employee=current_employee,
     )

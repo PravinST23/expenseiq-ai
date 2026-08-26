@@ -1,0 +1,64 @@
+# ExpenseIQ - local Docker Compose stack
+#
+# Brings up PostgreSQL + the FastAPI backend + the React frontend.
+# Ollama is expected to run on the HOST machine (not containerized -
+# the LLaVA model is several GB and this keeps local dev fast); the
+# backend reaches it via host.docker.internal.
+#
+# Usage:
+#   cp backend/.env.example backend/.env   # then fill in API keys
+#   docker compose up --build
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: expenseiq-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DATABASE:-expenseiq}
+      POSTGRES_USER: ${POSTGRES_USER:-expenseiq_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-expenseiq_user}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build:
+      context: ./backend
+    container_name: expenseiq-backend
+    restart: unless-stopped
+    env_file:
+      - ./backend/.env
+    environment:
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      OLLAMA_HOST: http://host.docker.internal:11434
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "8000:8000"
+    volumes:
+      - backend_uploads:/app/uploads
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  frontend:
+    build:
+      context: ./frontend
+    container_name: expenseiq-frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "3000:80"
+
+volumes:
+  pgdata:
+  backend_uploads:

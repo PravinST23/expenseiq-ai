@@ -12,6 +12,16 @@ from groq import Groq
 from app.ai.policy_prompt import EXPENSE_POLICY_PROMPT
 from app.config.settings import settings
 
+# llama-3.3-70b-versatile was retired from Groq's catalog after the
+# mid-term checkpoint; openai/gpt-oss-120b is the current closest
+# equivalent (large, fast, reliable structured JSON output) and is
+# still available on Groq's free tier. See docs/DEVIATIONS.md.
+GROQ_MODEL = "openai/gpt-oss-120b"
+
+# Groq has generally been fast (<2s) but a client-level timeout keeps
+# a stalled connection from hanging the whole pipeline indefinitely.
+GROQ_TIMEOUT_SECONDS = 20
+
 
 class GroqService:
     """
@@ -25,6 +35,7 @@ class GroqService:
 
         self.client = Groq(
             api_key=settings.GROQ_API_KEY,
+            timeout=GROQ_TIMEOUT_SECONDS,
         )
 
     def validate_expense(
@@ -47,7 +58,7 @@ Expense Data
 
             response = self.client.chat.completions.create(
 
-                model="llama-3.3-70b-versatile",
+                model=GROQ_MODEL,
 
                 messages=[
                     {

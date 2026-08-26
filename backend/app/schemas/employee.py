@@ -5,12 +5,20 @@ Author: Pravin Shanmugavel
 Project: ExpenseIQ
 """
 
+from typing import Literal
 from uuid import UUID
 
 from pydantic import BaseModel
 from pydantic import ConfigDict
 from pydantic import EmailStr
 from pydantic import Field
+
+EmployeeRole = Literal[
+    "EMPLOYEE",
+    "L1_MANAGER",
+    "L2_FINANCE",
+    "L3_CFO",
+]
 
 
 class EmployeeBase(BaseModel):
@@ -66,7 +74,23 @@ class EmployeeCreate(EmployeeBase):
     Request schema for creating an Employee.
     """
 
-    pass
+    role: EmployeeRole = Field(
+        default="EMPLOYEE",
+        description=(
+            "Approval routing role. L1_MANAGER/L2_FINANCE/L3_CFO "
+            "employees can act on the approval queue at that level."
+        ),
+    )
+
+    password: str | None = Field(
+        default=None,
+        min_length=6,
+        description=(
+            "Optional - only employees created with a password can "
+            "log in via /api/v1/auth/login. Omit for records that "
+            "never need to authenticate (most seed/demo data)."
+        ),
+    )
 
 
 class EmployeeUpdate(BaseModel):
@@ -83,16 +107,25 @@ class EmployeeUpdate(BaseModel):
     manager_name: str | None = None
     employee_status: str | None = None
     is_active: bool | None = None
+    policy_tier: str | None = None
+    role: EmployeeRole | None = None
+    password: str | None = Field(default=None, min_length=6)
 
 
 class EmployeeResponse(EmployeeBase):
     """
-    Response schema.
+    Response schema. hashed_password is intentionally never
+    included here.
     """
 
     id: UUID
     employee_status: str
     is_active: bool
+    policy_tier: str
+    role: str
+    has_password: bool = Field(
+        description="Whether this employee can log in.",
+    )
 
     model_config = ConfigDict(
         from_attributes=True

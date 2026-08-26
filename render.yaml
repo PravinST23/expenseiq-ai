@@ -1,0 +1,100 @@
+# Render.com Blueprint for ExpenseIQ
+#
+# Deploys:
+#   - expenseiq-db        managed PostgreSQL
+#   - expenseiq-backend   FastAPI web service (Docker)
+#   - expenseiq-frontend  React static site
+#
+# Note on Ollama: Ollama/LLaVA is a LOCAL, on-device model by design
+# (that's the whole point of the "offline sensitive receipt
+# processing" requirement - it must never leave the network). Render
+# has no service for it. When deployed here, receipts flagged
+# is_sensitive still route to Ollama first per the Hybrid Router's
+# rules; if OLLAMA_HOST is unreachable from Render, the AI
+# extraction step for that receipt fails gracefully (pipeline
+# continues with OCR-only data, receipt is flagged for manual
+# review) rather than crashing. For a live Ollama demo, either run
+# the backend locally, or self-host Ollama on a machine reachable
+# from Render and set OLLAMA_HOST to its public/tunnelled URL.
+#
+# Deploy: connect this repo in the Render dashboard -> "New Blueprint"
+# -> it reads this file automatically. Fill in the secret env vars
+# (GEMINI_API_KEY, GROQ_API_KEY) in the Render dashboard after the
+# first deploy.
+
+databases:
+  - name: expenseiq-db
+    databaseName: expenseiq
+    user: expenseiq_user
+    plan: free
+
+services:
+  - type: web
+    name: expenseiq-backend
+    runtime: docker
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    plan: free
+    healthCheckPath: /health
+    envVars:
+      - key: APP_NAME
+        value: ExpenseIQ API
+      - key: APP_VERSION
+        value: 1.0.0
+      - key: APP_DESCRIPTION
+        value: Enterprise AI Expense Management Platform
+      - key: DEBUG
+        value: "False"
+      - key: HOST
+        value: 0.0.0.0
+      - key: PORT
+        value: "8000"
+      - key: POSTGRES_HOST
+        fromDatabase:
+          name: expenseiq-db
+          property: host
+      - key: POSTGRES_PORT
+        fromDatabase:
+          name: expenseiq-db
+          property: port
+      - key: POSTGRES_DATABASE
+        fromDatabase:
+          name: expenseiq-db
+          property: database
+      - key: POSTGRES_USER
+        fromDatabase:
+          name: expenseiq-db
+          property: user
+      - key: POSTGRES_PASSWORD
+        fromDatabase:
+          name: expenseiq-db
+          property: password
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: GROQ_API_KEY
+        sync: false
+      - key: OLLAMA_HOST
+        value: http://localhost:11434
+      - key: OLLAMA_MODEL
+        value: llava
+      - key: CORS_ORIGINS_RAW
+        value: https://expenseiq-frontend.onrender.com
+      - key: JWT_SECRET_KEY
+        generateValue: true
+      - key: JWT_ALGORITHM
+        value: HS256
+      - key: JWT_EXPIRE_MINUTES
+        value: "60"
+
+  - type: web
+    name: expenseiq-frontend
+    runtime: static
+    buildCommand: cd frontend && npm ci && npm run build
+    staticPublishPath: ./frontend/dist
+    envVars:
+      - key: VITE_API_BASE_URL
+        value: https://expenseiq-backend.onrender.com/api/v1
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html

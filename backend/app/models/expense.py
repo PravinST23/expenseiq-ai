@@ -9,11 +9,15 @@ from __future__ import annotations
 
 import uuid
 from datetime import date
+from datetime import datetime
 from decimal import Decimal
 from typing import TYPE_CHECKING
 
+from sqlalchemy import Boolean
 from sqlalchemy import Date
+from sqlalchemy import DateTime
 from sqlalchemy import ForeignKey
+from sqlalchemy import Integer
 from sqlalchemy import Numeric
 from sqlalchemy import String
 from sqlalchemy import Text
@@ -99,6 +103,88 @@ class Expense(BaseModel):
         nullable=False,
     )
 
+    # ---------------------------------------------------------
+    # Hybrid Router
+    # ---------------------------------------------------------
+
+    is_sensitive: Mapped[bool] = mapped_column(
+        Boolean,
+        default=False,
+        nullable=False,
+    )
+
+    processing_engine: Mapped[str | None] = mapped_column(
+        String(20),
+        nullable=True,
+    )
+
+    # ---------------------------------------------------------
+    # AI Risk Scoring (denormalized from latest AIAnalysis
+    # for fast dashboard / Power BI querying)
+    # ---------------------------------------------------------
+
+    fraud_risk_score: Mapped[Decimal | None] = mapped_column(
+        Numeric(5, 2),
+        nullable=True,
+    )
+
+    compliance_risk_score: Mapped[Decimal | None] = mapped_column(
+        Numeric(5, 2),
+        nullable=True,
+    )
+
+    ai_confidence_score: Mapped[Decimal | None] = mapped_column(
+        Numeric(5, 2),
+        nullable=True,
+    )
+
+    is_duplicate: Mapped[bool] = mapped_column(
+        Boolean,
+        default=False,
+        nullable=False,
+    )
+
+    ai_recommendation: Mapped[str | None] = mapped_column(
+        String(30),
+        nullable=True,
+    )
+
+    # ---------------------------------------------------------
+    # Approval Routing (L1 Manager / L2 Finance / L3 CFO)
+    # ---------------------------------------------------------
+
+    current_approval_level: Mapped[int] = mapped_column(
+        Integer,
+        default=1,
+        nullable=False,
+    )
+
+    required_approval_level: Mapped[int] = mapped_column(
+        Integer,
+        default=1,
+        nullable=False,
+    )
+
+    # ---------------------------------------------------------
+    # Reimbursement Tracking
+    # ---------------------------------------------------------
+
+    reimbursement_state: Mapped[str] = mapped_column(
+        String(20),
+        default="PENDING",
+        nullable=False,
+    )
+
+    reimbursement_updated_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True,
+    )
+
+    reimbursement_processed_by: Mapped[str | None] = mapped_column(
+        String(100),
+        nullable=True,
+    )
+
     ai_reviews: Mapped[list["AIAnalysis"]] = relationship(
         "AIAnalysis",
         back_populates="expense",
@@ -134,6 +220,7 @@ class Expense(BaseModel):
         "DuplicateCheck",
         back_populates="expense",
         uselist=False,
+        foreign_keys="DuplicateCheck.expense_id",
     )
 
     compliance_check: Mapped["ComplianceCheck"] = relationship(
