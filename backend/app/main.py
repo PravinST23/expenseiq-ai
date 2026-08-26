@@ -6,6 +6,7 @@ Project: AI Powered Expense Management System
 """
 
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.router import api_router
 from app.config.settings import settings
@@ -17,6 +18,16 @@ app = FastAPI(
     version=settings.APP_VERSION,
     docs_url="/docs",
     redoc_url="/redoc",
+)
+
+# CORS - allows the React frontend (served from a different origin
+# in production, e.g. Render static site) to call this API.
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=settings.CORS_ORIGINS,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 # Register Global Exception Handlers

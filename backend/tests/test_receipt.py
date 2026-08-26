@@ -5,8 +5,11 @@ Author: Pravin Shanmugavel
 Project: ExpenseIQ
 """
 
+import os
 from pathlib import Path
 from uuid import uuid4
+
+import pytest
 
 EMPLOYEE_URL = "/api/v1/employees"
 PROJECT_URL = "/api/v1/projects"
@@ -89,6 +92,13 @@ def create_expense(client):
     return response.json()["id"]
 
 
+@pytest.mark.skipif(
+    os.getenv("CI") == "true",
+    reason=(
+        "Requires live Gemini/Groq API keys and a local Ollama "
+        "runtime - not available in CI."
+    ),
+)
 def test_upload_receipt(client):
 
     expense_id = create_expense(client)

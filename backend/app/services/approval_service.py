@@ -3,8 +3,16 @@ Expense Approval Service
 
 Author: Pravin Shanmugavel
 Project: ExpenseIQ
+
+Enforces the 3-role (L1 Manager / L2 Finance / L3 CFO) approval
+routing computed by the Smart Auto-Approval Engine. An approval
+action is only valid at the expense's current routing level; once
+recorded, the workflow either advances the expense to the next
+required level or, if this was the last required level, finalizes
+the approval and moves the claim into the reimbursement pipeline.
 """
 
+from datetime import datetime
 from uuid import UUID
 
 from fastapi import HTTPException
@@ -12,10 +20,16 @@ from fastapi import status
 from sqlalchemy.orm import Session
 
 from app.models.approval import ExpenseApproval
+from app.models.employee import Employee
 from app.models.expense import Expense
 from app.repositories.approval_repository import approval_repository
 from app.schemas.approval import ApprovalCreate
 from app.schemas.approval import ApprovalUpdate
+from app.workflow.approval_workflow import LEVEL_LABELS
+from app.workflow.approval_workflow import ROLE_LEVELS
+from app.workflow.approval_workflow import approval_workflow
+
+VALID_ACTIONS = {"Approved", "Rejected"}
 
 
 class ApprovalService:
@@ -27,7 +41,27 @@ class ApprovalService:
         self,
         db: Session,
         approval: ApprovalCreate,
+        current_employee: Employee | None = None,
     ):
+        """
+        current_employee, when provided (always true for the
+        authenticated HTTP route - see app.api.v1.approval), is the
+        source of truth for WHO is acting and at WHAT role: it
+        overrides whatever approver_role/approver_name the request
+        body carried, so a caller cannot forge an approval as a
+        role/person they aren't. Internal trusted callers (e.g.
+        scripts/seed_demo_data.py, which drives the service layer
+        directly rather than over HTTP) may omit it and fall back to
+        the body's fields.
+        """
+
+        if current_employee is not None:
+            approval = approval.model_copy(
+                update={
+                    "approver_role": current_employee.role,
+                    "approver_name": current_employee.full_name,
+                }
+            )
 
         expense = (
             db.query(Expense)
@@ -43,25 +77,88 @@ class ApprovalService:
                 detail="Expense not found.",
             )
 
+        if approval.action not in VALID_ACTIONS:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=(
+                    f"Invalid action '{approval.action}'. "
+                    f"Must be one of {sorted(VALID_ACTIONS)}."
+                ),
+            )
+
+        role_level = ROLE_LEVELS.get(approval.approver_role)
+
+        if role_level is None:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=(
+                    f"Unknown approver_role "
+                    f"'{approval.approver_role}'. Must be one "
+                    f"of {sorted(ROLE_LEVELS)}."
+                ),
+            )
+
+        if expense.status in ("Approved", "Rejected"):
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail=(
+                    f"Expense is already {expense.status} - "
+                    "no further approval actions allowed."
+                ),
+            )
+
+        if role_level != expense.current_approval_level:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail=(
+                    "This expense is currently awaiting "
+                    f"{LEVEL_LABELS[expense.current_approval_level]} "
+                    f"action, not {LEVEL_LABELS[role_level]}."
+                ),
+            )
+
         new_approval = ExpenseApproval(
-            **approval.model_dump()
+            expense_id=approval.expense_id,
+            approver_role=approval.approver_role,
+            approval_level=role_level,
+            approver_name=approval.approver_name,
+            action=approval.action,
+            comments=approval.comments,
         )
 
         db.add(new_approval)
 
-        if approval.approver_role == "Manager":
+        if approval.action == "Rejected":
 
-            if approval.action == "Approved":
-                expense.status = "Manager Approved"
+            expense.status = "Rejected"
+
+        else:
+
+            if (
+                expense.current_approval_level
+                < expense.required_approval_level
+            ):
+
+                expense.current_approval_level += 1
+
+                next_label = LEVEL_LABELS[
+                    expense.current_approval_level
+                ]
+
+                expense.status = (
+                    f"Pending {next_label} Approval"
+                )
+
             else:
-                expense.status = "Manager Rejected"
 
-        elif approval.approver_role == "Finance":
-
-            if approval.action == "Approved":
-                expense.status = "Completed"
-            else:
-                expense.status = "Finance Rejected"
+                expense.status = "Approved"
+                expense.reimbursement_state = "APPROVED"
+                expense.reimbursement_updated_at = (
+                    datetime.utcnow()
+                )
+                expense.reimbursement_processed_by = (
+                    approval.approver_name
+                )
 
         db.commit()
 

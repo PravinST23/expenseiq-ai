@@ -14,12 +14,17 @@ from fastapi import HTTPException
 from fastapi import status
 
 from app.langchain.expense_pipeline import expense_pipeline
+from app.models.approval import ExpenseApproval
+from app.models.expense import Expense
 from app.models.receipt import Receipt
 from app.repositories.receipt_repository import receipt_repository
 from app.schemas.ai_analysis import AIAnalysisCreate
 from app.schemas.receipt import ReceiptCreate
 from app.schemas.receipt import ReceiptUpdate
 from app.services.ai_analysis_service import ai_analysis_service
+from app.services.compliance_check_service import (
+    compliance_check_service,
+)
 
 
 class ReceiptService:
@@ -62,7 +67,10 @@ class ReceiptService:
         receipt: ReceiptCreate,
     ):
         """
-        Upload receipt and process using AI Pipeline.
+        Upload receipt and process using the AI Pipeline
+        (OCR -> Hybrid Router -> Duplicate Detector -> Groq
+        Risk Scoring -> Auto-Approval Engine -> Approval
+        Workflow).
         """
 
         # -------------------------------------------------
@@ -74,6 +82,19 @@ class ReceiptService:
             receipt,
         )
 
+        expense = (
+            db.query(Expense)
+            .filter(Expense.id == receipt.expense_id)
+            .first()
+        )
+
+        if expense is None:
+
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Expense not found for this receipt.",
+            )
+
         try:
 
             # -------------------------------------------------
@@ -81,6 +102,8 @@ class ReceiptService:
             # -------------------------------------------------
 
             result = expense_pipeline.process_receipt(
+                db,
+                expense,
                 new_receipt.file_path,
             )
 
@@ -99,6 +122,7 @@ class ReceiptService:
             new_receipt.extracted_json = json.dumps(
                 result,
                 indent=4,
+                default=str,
             )
 
             new_receipt.ai_status = "Completed"
@@ -149,6 +173,7 @@ class ReceiptService:
                 extracted_json=json.dumps(
                     result,
                     indent=4,
+                    default=str,
                 ),
 
                 policy_status=result.get(
@@ -166,31 +191,135 @@ class ReceiptService:
                 ),
 
                 approval_recommendation=result.get(
-                    "approval_status",
-                    "Pending Manager Review",
+                    "ai_recommendation",
+                    "ESCALATE_FOR_REVIEW",
                 ),
 
-                ai_provider="Gemini",
+                ai_provider=result.get(
+                    "ai_provider",
+                    "gemini",
+                ),
 
                 ocr_provider="Tesseract",
 
                 policy_provider="Groq",
 
-                pipeline_version="1.0.0",
+                pipeline_version="2.0.0",
 
-                confidence_score=None,
+                confidence_score=result.get(
+                    "confidence",
+                ),
 
-                fraud_score=None,
+                fraud_score=result.get(
+                    "fraud_risk",
+                ),
 
-                duplicate_score=None,
+                duplicate_score=result.get(
+                    "duplicate_confidence",
+                ),
 
                 quality_score=None,
+
+                compliance_risk_score=result.get(
+                    "compliance_risk",
+                ),
+
+                risk_reason=result.get(
+                    "risk_reason",
+                ),
+
+                required_approval_level=result.get(
+                    "required_approval_level",
+                ),
             )
 
             ai_analysis_service.create_analysis(
                 db,
                 analysis,
             )
+
+            # -------------------------------------------------
+            # Upsert Compliance Check
+            # -------------------------------------------------
+
+            compliance_check_service.upsert(
+                db,
+                expense_id=expense.id,
+                policy_status=result.get(
+                    "policy_status",
+                    "UNKNOWN",
+                ),
+                policy_reason=result.get("policy_reason"),
+                ai_model=result.get("ai_provider", "gemini"),
+            )
+
+            # -------------------------------------------------
+            # Update Expense (denormalized AI + routing state)
+            # -------------------------------------------------
+
+            expense.processing_engine = result.get(
+                "ai_provider",
+            )
+            expense.fraud_risk_score = result.get(
+                "fraud_risk",
+            )
+            expense.compliance_risk_score = result.get(
+                "compliance_risk",
+            )
+            expense.ai_confidence_score = result.get(
+                "confidence",
+            )
+            expense.is_duplicate = bool(
+                result.get("duplicate_found", False)
+            )
+            expense.ai_recommendation = result.get(
+                "ai_recommendation",
+            )
+            expense.current_approval_level = result.get(
+                "current_approval_level",
+                1,
+            )
+            expense.required_approval_level = result.get(
+                "required_approval_level",
+                1,
+            )
+            expense.status = result.get(
+                "approval_status",
+                "Pending L1 Manager Approval",
+            )
+
+            approved_by = result.get("approved_by")
+
+            if approved_by == "System":
+
+                expense.reimbursement_state = "APPROVED"
+                expense.reimbursement_updated_at = (
+                    datetime.utcnow()
+                )
+                expense.reimbursement_processed_by = "System"
+
+                db.add(
+                    ExpenseApproval(
+                        expense_id=expense.id,
+                        approver_role="SYSTEM",
+                        approval_level=1,
+                        approver_name="ExpenseIQ AI",
+                        action="Approved",
+                        comments=(
+                            "Auto-approved by the Smart "
+                            "Auto-Approval Engine: "
+                            + str(
+                                result.get(
+                                    "auto_approval_reason",
+                                    "",
+                                )
+                            )
+                        ),
+                    )
+                )
+
+            db.commit()
+            db.refresh(expense)
 
         except Exception as ex:
 
