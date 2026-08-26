@@ -14,6 +14,7 @@ from typing import TYPE_CHECKING
 from sqlalchemy import Boolean
 from sqlalchemy import ForeignKey
 from sqlalchemy import Numeric
+from sqlalchemy import String
 from sqlalchemy.orm import Mapped
 from sqlalchemy.orm import mapped_column
 from sqlalchemy.orm import relationship
@@ -49,7 +50,18 @@ class DuplicateCheck(BaseModel):
         nullable=False,
     )
 
+    matched_expense_id: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("expenses.id"),
+        nullable=True,
+    )
+
+    match_fields: Mapped[str | None] = mapped_column(
+        String(255),
+        nullable=True,
+    )
+
     expense: Mapped["Expense"] = relationship(
         "Expense",
         back_populates="duplicate_check",
+        foreign_keys=[expense_id],
     )

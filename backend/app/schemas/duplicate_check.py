@@ -17,6 +17,8 @@ class DuplicateCheckBase(BaseModel):
     expense_id: UUID
     duplicate_found: bool
     confidence_score: Decimal
+    matched_expense_id: UUID | None = None
+    match_fields: str | None = None
 
 
 class DuplicateCheckCreate(DuplicateCheckBase):

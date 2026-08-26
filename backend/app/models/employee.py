@@ -79,8 +79,48 @@ class Employee(BaseModel):
         nullable=False,
     )
 
+    # ---------------------------------------------------------
+    # Policy / Risk Metadata
+    # ---------------------------------------------------------
+
+    policy_tier: Mapped[str] = mapped_column(
+        String(20),
+        default="STANDARD",
+        nullable=False,
+    )
+
+    # ---------------------------------------------------------
+    # Authentication / RBAC
+    # ---------------------------------------------------------
+
+    # One of EMPLOYEE, L1_MANAGER, L2_FINANCE, L3_CFO - see
+    # app.workflow.approval_workflow.LEVEL_ROLES for the approval
+    # routing roles this must line up with.
+    role: Mapped[str] = mapped_column(
+        String(20),
+        default="EMPLOYEE",
+        nullable=False,
+    )
+
+    # Nullable: an Employee created without a password (the common
+    # case for most seed/demo/test records) simply cannot log in -
+    # login-eligible accounts are opt-in via EmployeeCreate.password.
+    hashed_password: Mapped[str | None] = mapped_column(
+        String(255),
+        nullable=True,
+    )
+
     # Relationships
     expenses: Mapped[list["Expense"]] = relationship(
         "Expense",
         back_populates="employee",
     )
+
+    @property
+    def has_password(self) -> bool:
+        """
+        Whether this employee has a login-eligible password set.
+        Exposed to EmployeeResponse instead of hashed_password
+        itself, which must never leave the server.
+        """
+        return self.hashed_password is not None

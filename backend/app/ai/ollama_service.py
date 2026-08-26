@@ -23,8 +23,12 @@ class OllamaService:
         self.host = settings.OLLAMA_HOST
         self.model = settings.OLLAMA_MODEL
 
+        # CPU-only LLaVA inference is slow (tens of seconds is
+        # normal) but must not hang forever if Ollama itself is
+        # unreachable / stuck.
         self.client = ollama.Client(
             host=self.host,
+            timeout=120,
         )
 
     def extract_receipt(

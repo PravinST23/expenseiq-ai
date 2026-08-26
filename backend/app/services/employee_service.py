@@ -11,6 +11,7 @@ from fastapi import HTTPException
 from fastapi import status
 from sqlalchemy.orm import Session
 
+from app.core.security import hash_password
 from app.models.employee import Employee
 from app.repositories.employee_repository import employee_repository
 from app.schemas.employee import EmployeeCreate
@@ -47,8 +48,15 @@ class EmployeeService:
                 detail="Email already exists.",
             )
 
+        employee_data = employee.model_dump(exclude={"password"})
+
         new_employee = Employee(
-            **employee.model_dump()
+            **employee_data,
+            hashed_password=(
+                hash_password(employee.password)
+                if employee.password
+                else None
+            ),
         )
 
         return employee_repository.create(
@@ -94,7 +102,8 @@ class EmployeeService:
         )
 
         update_data = employee_update.model_dump(
-            exclude_unset=True
+            exclude_unset=True,
+            exclude={"password"},
         )
 
         for key, value in update_data.items():
@@ -102,6 +111,11 @@ class EmployeeService:
                 employee,
                 key,
                 value,
+            )
+
+        if employee_update.password:
+            employee.hashed_password = hash_password(
+                employee_update.password
             )
 
         return employee_repository.update(

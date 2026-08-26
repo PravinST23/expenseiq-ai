@@ -39,6 +39,30 @@ class Settings(BaseSettings):
     OLLAMA_HOST: str
     OLLAMA_MODEL: str
 
+    # =====================================================
+    # CORS - comma-separated list of allowed frontend origins
+    # =====================================================
+    CORS_ORIGINS_RAW: str = (
+        "http://localhost:5173,http://127.0.0.1:5173"
+    )
+
+    # =====================================================
+    # JWT Authentication
+    # =====================================================
+    # Dev-only default - MUST be overridden via .env in any
+    # shared/deployed environment (see .env.example).
+    JWT_SECRET_KEY: str = "expenseiq-dev-secret-change-me"
+    JWT_ALGORITHM: str = "HS256"
+    JWT_EXPIRE_MINUTES: int = 60
+
+    @property
+    def CORS_ORIGINS(self) -> list[str]:
+        return [
+            origin.strip()
+            for origin in self.CORS_ORIGINS_RAW.split(",")
+            if origin.strip()
+        ]
+
     @property
     def DATABASE_URL(self) -> str:
         """

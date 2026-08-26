@@ -9,9 +9,23 @@ import json
 from pathlib import Path
 
 from google import genai
+from google.genai import types
 
 from app.ai.prompt_templates import RECEIPT_EXTRACTION_PROMPT
 from app.config.settings import settings
+
+# Without an explicit timeout, a stalled network path can hang this
+# call forever - which also silently defeats the Hybrid Router's
+# fallback-to-Ollama logic, since a hang never raises an exception
+# for it to catch. 30s is generous for a single receipt image.
+GEMINI_TIMEOUT_MS = 30_000
+
+# Gemini 2.5 Flash (the model named in the approved proposal) has
+# since been retired for this API key ("no longer available to new
+# users"), and the "-latest" alias currently times out. 3.5 Flash is
+# the closest available same-tier multimodal model - verified
+# working end-to-end on 2026-08-26. See docs/DEVIATIONS.md.
+GEMINI_MODEL = "models/gemini-3.5-flash"
 
 
 class GeminiService:
@@ -26,6 +40,9 @@ class GeminiService:
 
         self.client = genai.Client(
             api_key=settings.GEMINI_API_KEY,
+            http_options=types.HttpOptions(
+                timeout=GEMINI_TIMEOUT_MS,
+            ),
         )
 
     def extract_receipt(
@@ -53,8 +70,7 @@ class GeminiService:
             # ------------------------------------------
 
             response = self.client.models.generate_content(
-                model="models/gemini-flash-latest",
-                #model="models/gemini-2.0-flash",
+                model=GEMINI_MODEL,
                 contents=[
                     RECEIPT_EXTRACTION_PROMPT,
                     uploaded_file,

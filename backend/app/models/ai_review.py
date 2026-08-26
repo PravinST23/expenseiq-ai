@@ -177,6 +177,21 @@ class AIAnalysis(BaseModel):
         nullable=True,
     )
 
+    compliance_risk_score: Mapped[float | None] = mapped_column(
+        Numeric(5, 2),
+        nullable=True,
+    )
+
+    risk_reason: Mapped[str | None] = mapped_column(
+        Text,
+        nullable=True,
+    )
+
+    required_approval_level: Mapped[int | None] = mapped_column(
+        Numeric(2, 0),
+        nullable=True,
+    )
+
     # =====================================================
     # Audit
     # =====================================================

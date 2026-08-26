@@ -3,6 +3,12 @@ Expense Approval API
 
 Author: Pravin Shanmugavel
 Project: ExpenseIQ
+
+Write endpoints are protected: only an authenticated employee
+holding an approval role (L1_MANAGER / L2_FINANCE / L3_CFO) can
+record or modify an approval action. See app.api.deps.require_roles
+and ApprovalService.create_approval for how the JWT identity
+overrides any approver_role/approver_name the request body carries.
 """
 
 from uuid import UUID
@@ -15,6 +21,8 @@ from fastapi import status
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_db
+from app.api.deps import require_roles
+from app.models.employee import Employee
 from app.schemas.approval import ApprovalCreate
 from app.schemas.approval import ApprovalResponse
 from app.schemas.approval import ApprovalUpdate
@@ -24,6 +32,8 @@ router = APIRouter(
     prefix="/approvals",
     tags=["Approvals"],
 )
+
+APPROVER_ROLES = ("L1_MANAGER", "L2_FINANCE", "L3_CFO")
 
 
 @router.post(
@@ -35,11 +45,13 @@ router = APIRouter(
 def create_approval(
     approval: ApprovalCreate,
     db: Session = Depends(get_db),
+    current_employee: Employee = Depends(require_roles(*APPROVER_ROLES)),
 ):
 
     return approval_service.create_approval(
         db,
         approval,
+        current_employee=current_employee,
     )
 
 
@@ -96,6 +108,7 @@ def update_approval(
     approval_id: UUID,
     approval: ApprovalUpdate,
     db: Session = Depends(get_db),
+    current_employee: Employee = Depends(require_roles(*APPROVER_ROLES)),
 ):
 
     return approval_service.update_approval(
@@ -113,6 +126,7 @@ def update_approval(
 def delete_approval(
     approval_id: UUID,
     db: Session = Depends(get_db),
+    current_employee: Employee = Depends(require_roles(*APPROVER_ROLES)),
 ):
 
     approval_service.delete_approval(

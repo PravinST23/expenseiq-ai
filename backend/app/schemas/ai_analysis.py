@@ -62,6 +62,12 @@ class AIAnalysisBase(BaseModel):
 
     quality_score: float | None = None
 
+    compliance_risk_score: float | None = None
+
+    risk_reason: str | None = None
+
+    required_approval_level: int | None = None
+
 
 class AIAnalysisCreate(AIAnalysisBase):
     """
@@ -106,6 +112,12 @@ class AIAnalysisUpdate(BaseModel):
     duplicate_score: float | None = None
 
     quality_score: float | None = None
+
+    compliance_risk_score: float | None = None
+
+    risk_reason: str | None = None
+
+    required_approval_level: int | None = None
 
 
 class AIAnalysisResponse(AIAnalysisBase):

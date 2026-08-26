@@ -5,8 +5,25 @@ Author: Pravin Shanmugavel
 Project: ExpenseIQ
 """
 
+import os
 from pathlib import Path
 from uuid import uuid4
+
+import pytest
+
+# These tests drive the full AI pipeline (Gemini / Groq / Ollama)
+# with real network / on-device calls, so they only run when a
+# developer explicitly runs them locally - CI skips them (no live
+# API keys or Ollama runtime available on the runner) and relies on
+# the mocked test_hybrid_router.py / test_auto_approval_engine.py
+# suites for that logic instead.
+pytestmark = pytest.mark.skipif(
+    os.getenv("CI") == "true",
+    reason=(
+        "Requires live Gemini/Groq API keys and a local Ollama "
+        "runtime - not available in CI."
+    ),
+)
 
 EMPLOYEE_URL = "/api/v1/employees"
 PROJECT_URL = "/api/v1/projects"
