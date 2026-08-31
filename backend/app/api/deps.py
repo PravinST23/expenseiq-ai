@@ -83,7 +83,7 @@ def require_roles(*allowed_roles: str):
     Dependency factory - gates a route to specific employee roles
     on top of get_current_employee's authentication check.
 
-    Usage: Depends(require_roles("L2_FINANCE", "L3_CFO"))
+    Usage: Depends(require_roles("CFO"))
     """
 
     def _check(

@@ -4,10 +4,12 @@ Expense Approval Service
 Author: Pravin Shanmugavel
 Project: ExpenseIQ
 
-Enforces the 3-role (L1 Manager / L2 Finance / L3 CFO) approval
-routing computed by the Smart Auto-Approval Engine. An approval
-action is only valid at the expense's current routing level; once
-recorded, the workflow either advances the expense to the next
+Enforces the manager-chain approval routing computed by
+app.workflow.manager_chain: Reporting Manager -> Skip-Level Manager
+-> CFO, resolved per the EXPENSE'S REQUESTER (not a generic role).
+An approval action is only valid when performed by the specific
+employee that chain resolves to at the expense's current level;
+once recorded, the workflow either advances the expense to the next
 required level or, if this was the last required level, finalizes
 the approval and moves the claim into the reimbursement pipeline.
 """
@@ -25,9 +27,8 @@ from app.models.expense import Expense
 from app.repositories.approval_repository import approval_repository
 from app.schemas.approval import ApprovalCreate
 from app.schemas.approval import ApprovalUpdate
-from app.workflow.approval_workflow import LEVEL_LABELS
-from app.workflow.approval_workflow import ROLE_LEVELS
-from app.workflow.approval_workflow import approval_workflow
+from app.workflow.manager_chain import level_label
+from app.workflow.manager_chain import resolve_approver
 
 VALID_ACTIONS = {"Approved", "Rejected"}
 
@@ -41,27 +42,15 @@ class ApprovalService:
         self,
         db: Session,
         approval: ApprovalCreate,
-        current_employee: Employee | None = None,
+        current_employee: Employee,
     ):
         """
-        current_employee, when provided (always true for the
-        authenticated HTTP route - see app.api.v1.approval), is the
-        source of truth for WHO is acting and at WHAT role: it
-        overrides whatever approver_role/approver_name the request
-        body carried, so a caller cannot forge an approval as a
-        role/person they aren't. Internal trusted callers (e.g.
-        scripts/seed_demo_data.py, which drives the service layer
-        directly rather than over HTTP) may omit it and fall back to
-        the body's fields.
+        current_employee is the authenticated caller - the source of
+        truth for WHO is acting. They must be the exact employee the
+        manager chain resolves to for this expense's requester at
+        its current level (e.g. the requester's actual Reporting
+        Manager for level 1) - not just anyone holding a broad role.
         """
-
-        if current_employee is not None:
-            approval = approval.model_copy(
-                update={
-                    "approver_role": current_employee.role,
-                    "approver_name": current_employee.full_name,
-                }
-            )
 
         expense = (
             db.query(Expense)
@@ -86,18 +75,6 @@ class ApprovalService:
                 ),
             )
 
-        role_level = ROLE_LEVELS.get(approval.approver_role)
-
-        if role_level is None:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail=(
-                    f"Unknown approver_role "
-                    f"'{approval.approver_role}'. Must be one "
-                    f"of {sorted(ROLE_LEVELS)}."
-                ),
-            )
-
         if expense.status in ("Approved", "Rejected"):
             raise HTTPException(
                 status_code=status.HTTP_409_CONFLICT,
@@ -107,21 +84,28 @@ class ApprovalService:
                 ),
             )
 
-        if role_level != expense.current_approval_level:
+        resolved = resolve_approver(
+            db,
+            expense.employee,
+            expense.current_approval_level,
+        )
+
+        if resolved.employee.id != current_employee.id:
             raise HTTPException(
-                status_code=status.HTTP_409_CONFLICT,
+                status_code=status.HTTP_403_FORBIDDEN,
                 detail=(
-                    "This expense is currently awaiting "
-                    f"{LEVEL_LABELS[expense.current_approval_level]} "
-                    f"action, not {LEVEL_LABELS[role_level]}."
+                    f"This expense is currently awaiting action from "
+                    f"its {resolved.label} "
+                    f"({resolved.employee.full_name}), not you."
                 ),
             )
 
         new_approval = ExpenseApproval(
             expense_id=approval.expense_id,
-            approver_role=approval.approver_role,
-            approval_level=role_level,
-            approver_name=approval.approver_name,
+            approver_employee_id=current_employee.id,
+            approver_role=resolved.label,
+            approval_level=resolved.level,
+            approver_name=current_employee.full_name,
             action=approval.action,
             comments=approval.comments,
         )
@@ -141,9 +125,9 @@ class ApprovalService:
 
                 expense.current_approval_level += 1
 
-                next_label = LEVEL_LABELS[
+                next_label = level_label(
                     expense.current_approval_level
-                ]
+                )
 
                 expense.status = (
                     f"Pending {next_label} Approval"
@@ -157,7 +141,7 @@ class ApprovalService:
                     datetime.utcnow()
                 )
                 expense.reimbursement_processed_by = (
-                    approval.approver_name
+                    current_employee.full_name
                 )
 
         db.commit()
@@ -165,6 +149,42 @@ class ApprovalService:
         db.refresh(new_approval)
 
         return new_approval
+
+    def get_pending_for_employee(
+        self,
+        db: Session,
+        employee: Employee,
+    ) -> list[Expense]:
+        """
+        Every non-terminal expense currently awaiting THIS
+        employee's action - resolved per-requester via the manager
+        chain, not by a fixed role/level. Powers the manager
+        dashboard's approval queue.
+        """
+
+        pending = []
+
+        candidates = (
+            db.query(Expense)
+            .filter(~Expense.status.in_(("Approved", "Rejected")))
+            .all()
+        )
+
+        for expense in candidates:
+
+            try:
+                resolved = resolve_approver(
+                    db,
+                    expense.employee,
+                    expense.current_approval_level,
+                )
+            except Exception:
+                continue
+
+            if resolved.employee.id == employee.id:
+                pending.append(expense)
+
+        return pending
 
     def get_all(
         self,

@@ -15,6 +15,8 @@ from fastapi import status
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_db
+from app.api.deps import require_roles
+from app.models.employee import Employee
 from app.schemas.project import ProjectCreate
 from app.schemas.project import ProjectResponse
 from app.schemas.project import ProjectUpdate
@@ -31,10 +33,12 @@ router = APIRouter(
     response_model=ProjectResponse,
     status_code=status.HTTP_201_CREATED,
     summary="Create Project",
+    description="HR_HEAD only.",
 )
 def create_project(
     project: ProjectCreate,
     db: Session = Depends(get_db),
+    current_employee: Employee = Depends(require_roles("HR_HEAD")),
 ):
 
     return project_service.create_project(
@@ -75,11 +79,13 @@ def get_project(
     "/{project_id}",
     response_model=ProjectResponse,
     summary="Update Project",
+    description="HR_HEAD only.",
 )
 def update_project(
     project_id: UUID,
     project: ProjectUpdate,
     db: Session = Depends(get_db),
+    current_employee: Employee = Depends(require_roles("HR_HEAD")),
 ):
 
     return project_service.update_project(
@@ -93,10 +99,12 @@ def update_project(
     "/{project_id}",
     status_code=status.HTTP_204_NO_CONTENT,
     summary="Delete Project",
+    description="HR_HEAD only.",
 )
 def delete_project(
     project_id: UUID,
     db: Session = Depends(get_db),
+    current_employee: Employee = Depends(require_roles("HR_HEAD")),
 ):
 
     project_service.delete_project(

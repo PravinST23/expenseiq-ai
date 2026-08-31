@@ -3,72 +3,30 @@ Expense API Tests
 
 Author: Pravin Shanmugavel
 Project: ExpenseIQ
+
+Creating an expense requires authentication - the claim is always
+submitted as the logged-in employee (employee_id in the body is
+ignored/overridden).
 """
 
 from uuid import uuid4
 
-EMPLOYEE_URL = "/api/v1/employees"
-PROJECT_URL = "/api/v1/projects"
+from tests.helpers import create_employee, create_project
+
 EXPENSE_URL = "/api/v1/expenses"
 
 
-def create_employee(client):
+def create_expense_payload(client, hr_head_headers):
 
     unique = uuid4().hex[:6]
+
+    requester, requester_headers = create_employee(client, hr_head_headers)
+    project_id = create_project(client, hr_head_headers)
 
     payload = {
-        "employee_code": f"EMP{unique}",
-        "full_name": "Expense Test Employee",
-        "email": f"employee{unique}@example.com",
-        "phone_number": "9876543210",
-        "department": "Engineering",
-        "designation": "Software Engineer",
-        "manager_name": "John Manager",
-    }
-
-    response = client.post(
-        f"{EMPLOYEE_URL}/",
-        json=payload,
-    )
-
-    assert response.status_code == 201
-
-    return response.json()["id"]
-
-
-def create_project(client):
-
-    unique = uuid4().hex[:6]
-
-    payload = {
-        "project_code": f"PRJ{unique}",
-        "project_name": f"ExpenseIQ-{unique}",
-        "client_name": "Internal",
-        "project_description": "Expense Test Project",
-        "start_date": "2026-07-01",
-        "end_date": "2026-12-31",
-        "project_manager": "Pravin",
-        "project_budget": 100000,
-    }
-
-    response = client.post(
-        f"{PROJECT_URL}/",
-        json=payload,
-    )
-
-    assert response.status_code == 201
-
-    return response.json()["id"]
-
-
-def create_expense_payload(client):
-
-    unique = uuid4().hex[:6]
-
-    return {
         "expense_number": f"EXP{unique}",
-        "employee_id": create_employee(client),
-        "project_id": create_project(client),
+        "employee_id": requester["id"],
+        "project_id": project_id,
         "expense_category": "Travel",
         "merchant_name": "Uber",
         "amount": 450.75,
@@ -78,15 +36,23 @@ def create_expense_payload(client):
         "description": "Travel to client office",
     }
 
+    return payload, requester_headers
 
-def test_create_expense(client):
 
-    payload = create_expense_payload(client)
+def test_create_expense_requires_authentication(client, hr_head_headers):
 
-    response = client.post(
-        f"{EXPENSE_URL}/",
-        json=payload,
-    )
+    payload, _ = create_expense_payload(client, hr_head_headers)
+
+    response = client.post(f"{EXPENSE_URL}/", json=payload)
+
+    assert response.status_code == 401
+
+
+def test_create_expense(client, hr_head_headers):
+
+    payload, headers = create_expense_payload(client, hr_head_headers)
+
+    response = client.post(f"{EXPENSE_URL}/", json=payload, headers=headers)
 
     assert response.status_code == 201
 
@@ -94,81 +60,80 @@ def test_create_expense(client):
 
     assert data["expense_number"] == payload["expense_number"]
     assert data["merchant_name"] == payload["merchant_name"]
+    assert data["employee_id"] == payload["employee_id"]
     assert "id" in data
+
+
+def test_create_expense_ignores_forged_employee_id(client, hr_head_headers):
+    """
+    Even if the body names a different employee_id, the server must
+    submit the claim as whoever is actually authenticated.
+    """
+
+    payload, headers = create_expense_payload(client, hr_head_headers)
+
+    forged_requester, _ = create_employee(client, hr_head_headers)
+    payload["employee_id"] = forged_requester["id"]
+
+    response = client.post(f"{EXPENSE_URL}/", json=payload, headers=headers)
+
+    assert response.status_code == 201
+    assert response.json()["employee_id"] != forged_requester["id"]
 
 
 def test_get_all_expenses(client):
 
-    response = client.get(
-        f"{EXPENSE_URL}/",
-    )
+    response = client.get(f"{EXPENSE_URL}/")
 
     assert response.status_code == 200
     assert isinstance(response.json(), list)
 
 
-def test_get_expense_by_id(client):
+def test_get_expense_by_id(client, hr_head_headers):
 
-    payload = create_expense_payload(client)
+    payload, headers = create_expense_payload(client, hr_head_headers)
 
-    create = client.post(
-        f"{EXPENSE_URL}/",
-        json=payload,
-    )
+    create = client.post(f"{EXPENSE_URL}/", json=payload, headers=headers)
 
     assert create.status_code == 201
 
     expense_id = create.json()["id"]
 
-    response = client.get(
-        f"{EXPENSE_URL}/{expense_id}",
-    )
+    response = client.get(f"{EXPENSE_URL}/{expense_id}")
 
     assert response.status_code == 200
     assert response.json()["id"] == expense_id
 
 
-def test_update_expense(client):
+def test_update_expense(client, hr_head_headers):
 
-    payload = create_expense_payload(client)
+    payload, headers = create_expense_payload(client, hr_head_headers)
 
-    create = client.post(
-        f"{EXPENSE_URL}/",
-        json=payload,
-    )
+    create = client.post(f"{EXPENSE_URL}/", json=payload, headers=headers)
 
     assert create.status_code == 201
 
     expense_id = create.json()["id"]
 
-    update_payload = {
-        "merchant_name": "Ola Cabs",
-    }
-
     response = client.put(
         f"{EXPENSE_URL}/{expense_id}",
-        json=update_payload,
+        json={"merchant_name": "Ola Cabs"},
     )
 
     assert response.status_code == 200
     assert response.json()["merchant_name"] == "Ola Cabs"
 
 
-def test_delete_expense(client):
+def test_delete_expense(client, hr_head_headers):
 
-    payload = create_expense_payload(client)
+    payload, headers = create_expense_payload(client, hr_head_headers)
 
-    create = client.post(
-        f"{EXPENSE_URL}/",
-        json=payload,
-    )
+    create = client.post(f"{EXPENSE_URL}/", json=payload, headers=headers)
 
     assert create.status_code == 201
 
     expense_id = create.json()["id"]
 
-    response = client.delete(
-        f"{EXPENSE_URL}/{expense_id}",
-    )
+    response = client.delete(f"{EXPENSE_URL}/{expense_id}")
 
     assert response.status_code == 204

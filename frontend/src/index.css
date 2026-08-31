@@ -1,7 +1,25 @@
 @import "tailwindcss";
 
+/* Palette modeled on how AI-driven finance/expense SaaS products
+   actually look (Brex, Ramp, Mercury, Expensify): a near-black
+   slate/navy sidebar for structural chrome, a single confident blue
+   as the accent for actions/highlights, and plain white/gray content
+   surfaces - not decorative, optimized for scanning dense data. One
+   typeface (Plus Jakarta Sans), hierarchy via weight/size only. */
 @theme {
-  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Plus Jakarta Sans", "Inter", ui-sans-serif, system-ui,
+    sans-serif;
+
+  --color-primary-950: #0b1120;
+  --color-primary-900: #111827;
+  --color-primary-800: #1e293b;
+  --color-primary-700: #334155;
+  --color-primary-600: #475569;
+
+  --color-accent-400: #60a5fa;
+  --color-accent-500: #3b82f6;
+  --color-accent-600: #2563eb;
+  --color-accent-700: #1d4ed8;
 }
 
 html,
@@ -25,4 +43,26 @@ body {
 
 ::-webkit-scrollbar-thumb {
   @apply bg-slate-300 rounded-full;
+}
+
+/* Subtle, non-thematic route transition - replayed on every
+   navigation (Layout keys its content wrapper on the pathname). */
+@keyframes route-fade {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.route-fade {
+  animation: route-fade 0.2s ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .route-fade {
+    animation: none;
+  }
 }

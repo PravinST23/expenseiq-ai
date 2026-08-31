@@ -9,6 +9,7 @@ import {
   ReimbursementBadge,
   StatusBadge,
 } from '../components/badges'
+import Pagination from '../components/Pagination'
 
 export default function MyExpenses() {
   const { session } = useSession()
@@ -46,62 +47,71 @@ export default function MyExpenses() {
           description="Submit your first expense to see it tracked here."
         />
       ) : (
-        <Card className="mt-6 overflow-x-auto">
-          <table className="min-w-full divide-y divide-slate-200 text-sm">
-            <thead className="bg-slate-50 text-left text-xs font-medium uppercase text-slate-500">
-              <tr>
-                <th className="px-4 py-3">Expense</th>
-                <th className="px-4 py-3">Merchant</th>
-                <th className="px-4 py-3">Amount</th>
-                <th className="px-4 py-3">Status</th>
-                <th className="px-4 py-3">AI Recommendation</th>
-                <th className="px-4 py-3">Reimbursement</th>
-                <th className="px-4 py-3" />
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {expenses.map((expense) => (
-                <tr key={expense.id} className="hover:bg-slate-50">
-                  <td className="px-4 py-3 font-medium text-slate-900">
-                    {expense.expense_number}
-                  </td>
-                  <td className="px-4 py-3 text-slate-600">
-                    {expense.merchant_name}
-                    {expense.is_duplicate ? (
-                      <span className="ml-2">
-                        <DuplicateBadge isDuplicate />
-                      </span>
-                    ) : null}
-                  </td>
-                  <td className="px-4 py-3 text-slate-600">
-                    {expense.currency} {Number(expense.amount).toFixed(2)}
-                  </td>
-                  <td className="px-4 py-3">
-                    <StatusBadge status={expense.status} />
-                  </td>
-                  <td className="px-4 py-3">
-                    <RecommendationBadge
-                      recommendation={expense.ai_recommendation}
-                    />
-                  </td>
-                  <td className="px-4 py-3">
-                    <ReimbursementBadge
-                      state={expense.reimbursement_state}
-                    />
-                  </td>
-                  <td className="px-4 py-3 text-right">
-                    <Link
-                      to={`/expenses/${expense.id}`}
-                      className="text-xs font-medium text-slate-500 hover:text-slate-900"
-                    >
-                      View →
-                    </Link>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </Card>
+        <div className="mt-6">
+          <Pagination
+            items={expenses}
+            pageSize={10}
+            renderPage={(pageExpenses) => (
+              <Card className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-slate-200 text-sm">
+                  <thead className="bg-slate-50 text-left text-xs font-medium uppercase text-slate-500">
+                    <tr>
+                      <th className="px-4 py-3">Expense</th>
+                      <th className="px-4 py-3">Merchant</th>
+                      <th className="px-4 py-3">Amount</th>
+                      <th className="px-4 py-3">Status</th>
+                      <th className="px-4 py-3">AI Recommendation</th>
+                      <th className="px-4 py-3">Reimbursement</th>
+                      <th className="px-4 py-3" />
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {pageExpenses.map((expense) => (
+                      <tr key={expense.id} className="hover:bg-slate-50">
+                        <td className="px-4 py-3 font-medium text-slate-900">
+                          {expense.expense_number}
+                        </td>
+                        <td className="px-4 py-3 text-slate-600">
+                          {expense.merchant_name}
+                          {expense.is_duplicate ? (
+                            <span className="ml-2">
+                              <DuplicateBadge isDuplicate />
+                            </span>
+                          ) : null}
+                        </td>
+                        <td className="px-4 py-3 text-slate-600">
+                          {expense.currency}{' '}
+                          {Number(expense.amount).toFixed(2)}
+                        </td>
+                        <td className="px-4 py-3">
+                          <StatusBadge status={expense.status} />
+                        </td>
+                        <td className="px-4 py-3">
+                          <RecommendationBadge
+                            recommendation={expense.ai_recommendation}
+                          />
+                        </td>
+                        <td className="px-4 py-3">
+                          <ReimbursementBadge
+                            state={expense.reimbursement_state}
+                          />
+                        </td>
+                        <td className="px-4 py-3 text-right">
+                          <Link
+                            to={`/expenses/${expense.id}`}
+                            className="text-xs font-medium text-slate-500 hover:text-slate-900"
+                          >
+                            View →
+                          </Link>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </Card>
+            )}
+          />
+        </div>
       )}
     </div>
   )

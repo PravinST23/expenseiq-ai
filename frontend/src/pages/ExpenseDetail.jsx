@@ -47,7 +47,7 @@ export default function ExpenseDetail() {
   const analysis = analyses[0]
 
   return (
-    <div className="max-w-3xl">
+    <div className="mx-auto max-w-3xl">
       <Link
         to="/my-expenses"
         className="text-xs font-medium text-slate-500 hover:text-slate-900"

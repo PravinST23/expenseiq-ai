@@ -1,3 +1,4 @@
+from app.models.team import Team
 from app.models.employee import Employee
 from app.models.project import Project
 from app.models.expense import Expense

@@ -4,11 +4,12 @@ Expense Approval API
 Author: Pravin Shanmugavel
 Project: ExpenseIQ
 
-Write endpoints are protected: only an authenticated employee
-holding an approval role (L1_MANAGER / L2_FINANCE / L3_CFO) can
-record or modify an approval action. See app.api.deps.require_roles
-and ApprovalService.create_approval for how the JWT identity
-overrides any approver_role/approver_name the request body carries.
+Creating an approval only requires being authenticated - authorization
+is per-resource: ApprovalService checks the caller is the exact
+employee the manager chain (Reporting Manager -> Skip-Level Manager
+-> CFO) resolves to for THIS expense's requester at its current
+level. Correcting/removing an existing audit entry is an
+administrative action, restricted to the CFO.
 """
 
 from uuid import UUID
@@ -20,6 +21,7 @@ from fastapi import status
 
 from sqlalchemy.orm import Session
 
+from app.api.deps import get_current_employee
 from app.api.deps import get_db
 from app.api.deps import require_roles
 from app.models.employee import Employee
@@ -33,8 +35,6 @@ router = APIRouter(
     tags=["Approvals"],
 )
 
-APPROVER_ROLES = ("L1_MANAGER", "L2_FINANCE", "L3_CFO")
-
 
 @router.post(
     "/",
@@ -45,7 +45,7 @@ APPROVER_ROLES = ("L1_MANAGER", "L2_FINANCE", "L3_CFO")
 def create_approval(
     approval: ApprovalCreate,
     db: Session = Depends(get_db),
-    current_employee: Employee = Depends(require_roles(*APPROVER_ROLES)),
+    current_employee: Employee = Depends(get_current_employee),
 ):
 
     return approval_service.create_approval(
@@ -103,12 +103,13 @@ def get_approval_history(
     "/{approval_id}",
     response_model=ApprovalResponse,
     summary="Update Approval",
+    description="Administrative correction - CFO only.",
 )
 def update_approval(
     approval_id: UUID,
     approval: ApprovalUpdate,
     db: Session = Depends(get_db),
-    current_employee: Employee = Depends(require_roles(*APPROVER_ROLES)),
+    current_employee: Employee = Depends(require_roles("CFO")),
 ):
 
     return approval_service.update_approval(
@@ -122,11 +123,12 @@ def update_approval(
     "/{approval_id}",
     status_code=status.HTTP_204_NO_CONTENT,
     summary="Delete Approval",
+    description="Administrative correction - CFO only.",
 )
 def delete_approval(
     approval_id: UUID,
     db: Session = Depends(get_db),
-    current_employee: Employee = Depends(require_roles(*APPROVER_ROLES)),
+    current_employee: Employee = Depends(require_roles("CFO")),
 ):
 
     approval_service.delete_approval(

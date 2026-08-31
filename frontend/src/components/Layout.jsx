@@ -1,28 +1,21 @@
-import { NavLink, Outlet } from 'react-router-dom'
+import { NavLink, Outlet, useLocation } from 'react-router-dom'
 import { useSession, ROLES } from '../context/session'
+import BrandMark from './BrandMark'
+
+const ALL_ROLES = ['EMPLOYEE', 'HR_HEAD', 'CFO']
 
 const NAV_ITEMS = [
-  { to: '/submit', label: 'Submit Expense', roles: ['EMPLOYEE'] },
-  { to: '/my-expenses', label: 'My Expenses', roles: ['EMPLOYEE'] },
-  {
-    to: '/approvals',
-    label: 'Approval Queue',
-    roles: ['L1_MANAGER', 'L2_FINANCE', 'L3_CFO'],
-  },
-  {
-    to: '/reimbursements',
-    label: 'Reimbursements',
-    roles: ['L2_FINANCE', 'L3_CFO'],
-  },
-  {
-    to: '/analytics',
-    label: 'Analytics',
-    roles: ['EMPLOYEE', 'L1_MANAGER', 'L2_FINANCE', 'L3_CFO'],
-  },
+  { to: '/submit', label: 'Submit Expense', roles: ALL_ROLES },
+  { to: '/my-expenses', label: 'My Expenses', roles: ALL_ROLES },
+  { to: '/approvals', label: 'Approval Queue', roles: ALL_ROLES },
+  { to: '/reimbursements', label: 'Reimbursements', roles: ['CFO'] },
+  { to: '/teams', label: 'Teams & Projects', roles: ['HR_HEAD'] },
+  { to: '/analytics', label: 'Analytics', roles: ALL_ROLES },
 ]
 
 export default function Layout() {
   const { session, signOut } = useSession()
+  const location = useLocation()
 
   const role = ROLES.find((r) => r.value === session?.role)
 
@@ -32,19 +25,12 @@ export default function Layout() {
 
   return (
     <div className="flex min-h-screen bg-slate-50">
-      <aside className="flex w-64 flex-col border-r border-slate-200 bg-white">
-        <div className="flex items-center gap-2 border-b border-slate-200 px-5 py-5">
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-slate-900 text-sm font-bold text-white">
-            IQ
-          </div>
-          <div>
-            <p className="text-sm font-semibold text-slate-900">
-              ExpenseIQ
-            </p>
-            <p className="text-xs text-slate-400">
-              AI Expense Management
-            </p>
-          </div>
+      <aside className="flex w-64 flex-col bg-primary-950">
+        <div className="border-b border-white/10 px-5 py-5">
+          <BrandMark dark />
+          <p className="mt-1 text-xs text-white/50">
+            ExpenseIQ - AI Expense Management
+          </p>
         </div>
 
         <nav className="flex-1 space-y-1 px-3 py-4">
@@ -55,8 +41,8 @@ export default function Layout() {
               className={({ isActive }) =>
                 `block rounded-lg px-3 py-2 text-sm font-medium transition ${
                   isActive
-                    ? 'bg-slate-900 text-white'
-                    : 'text-slate-600 hover:bg-slate-100'
+                    ? 'bg-accent-600 text-white'
+                    : 'text-white/70 hover:bg-white/10 hover:text-white'
                 }`
               }
             >
@@ -65,26 +51,27 @@ export default function Layout() {
           ))}
         </nav>
 
-        <div className="border-t border-slate-200 px-4 py-4">
-          <p className="text-xs font-medium text-slate-500">
-            Signed in as
-          </p>
-          <p className="truncate text-sm font-semibold text-slate-900">
+        <div className="border-t border-white/10 px-4 py-4">
+          <p className="text-xs font-medium text-white/40">Signed in as</p>
+          <p className="truncate text-sm font-semibold text-white">
             {session?.name}
           </p>
-          <p className="text-xs text-slate-400">{role?.label}</p>
+          <p className="text-xs text-accent-400">{role?.label}</p>
           <button
             type="button"
             onClick={signOut}
-            className="mt-3 w-full rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-50"
+            className="mt-3 w-full rounded-lg border border-white/20 px-3 py-1.5 text-xs font-medium text-white/80 hover:bg-white/10"
           >
-            Switch Role
+            Sign Out
           </button>
         </div>
       </aside>
 
       <main className="flex-1 overflow-y-auto">
-        <div className="mx-auto max-w-6xl px-6 py-8">
+        <div
+          key={location.pathname}
+          className="route-fade mx-auto max-w-6xl px-6 py-8"
+        >
           <Outlet />
         </div>
       </main>

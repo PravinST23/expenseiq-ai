@@ -10,8 +10,11 @@ feeds (reimbursement liability, AI accuracy) for QA evidence.
 
 1. Backend running locally: `uvicorn app.main:app --reload` (from
    `backend/`), reachable at `http://127.0.0.1:8000`.
-2. At least a few expenses processed through the pipeline, e.g. run
-   `python scripts/seed_demo_data.py` first so the dashboards aren't empty.
+2. At least a few expenses processed through the pipeline - run
+   `python scripts/bootstrap_org.py` first (one-time, creates the MAC
+   teams/projects + the first HR_HEAD), then sign up a few real
+   employees and submit/process some receipts so the dashboards
+   aren't empty.
 3. Power BI Desktop installed (Windows).
 
 ## Step 1 - Connect each feed

@@ -98,7 +98,7 @@ class Expense(BaseModel):
     )
 
     status: Mapped[str] = mapped_column(
-        String(30),
+        String(50),
         default="Pending",
         nullable=False,
     )

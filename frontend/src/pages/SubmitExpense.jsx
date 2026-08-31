@@ -131,7 +131,7 @@ export default function SubmitExpense() {
   }
 
   return (
-    <div className="max-w-2xl">
+    <div className="mx-auto max-w-2xl">
       <h1 className="text-xl font-semibold text-slate-900">
         Submit an Expense
       </h1>

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { useSession, ROLES } from '../context/session'
+import { useSession } from '../context/session'
 import { approvalsApi, expensesApi } from '../api/resources'
 import {
   Button,
@@ -17,7 +17,6 @@ import {
 
 export default function ApprovalQueue() {
   const { session } = useSession()
-  const roleMeta = ROLES.find((r) => r.value === session.role)
 
   const [expenses, setExpenses] = useState(null)
   const [error, setError] = useState(null)
@@ -25,20 +24,14 @@ export default function ApprovalQueue() {
   const [comments, setComments] = useState({})
 
   const load = useCallback(() => {
+    // Resolved server-side per-requester via the manager chain
+    // (Reporting Manager -> Skip-Level Manager -> CFO) - not by a
+    // fixed role, since any employee can be someone's manager.
     expensesApi
-      .list()
-      .then((data) =>
-        setExpenses(
-          data.filter(
-            (e) =>
-              e.status !== 'Approved' &&
-              e.status !== 'Rejected' &&
-              e.current_approval_level === roleMeta?.level,
-          ),
-        ),
-      )
+      .pendingForMe()
+      .then(setExpenses)
       .catch((err) => setError(err.message))
-  }, [roleMeta])
+  }, [])
 
   useEffect(() => {
     load()
@@ -69,7 +62,7 @@ export default function ApprovalQueue() {
   return (
     <div>
       <h1 className="text-xl font-semibold text-slate-900">
-        Approval Queue - {roleMeta?.label}
+        Approval Queue
       </h1>
       <p className="mt-1 text-sm text-slate-500">
         Claims currently routed to you, with the Smart Auto-Approval

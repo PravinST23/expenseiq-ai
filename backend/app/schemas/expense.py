@@ -21,7 +21,12 @@ class ExpenseBase(BaseModel):
     """
 
     expense_number: str = Field(..., examples=["EXP001"])
-    employee_id: UUID
+    # Optional over the authenticated HTTP API - the server always
+    # submits the expense as the logged-in employee (see
+    # ExpenseService.create_expense), overriding whatever is sent
+    # here. Only trusted internal callers without a token (import
+    # scripts) need to set it explicitly.
+    employee_id: UUID | None = None
     project_id: UUID
     expense_category: str
     merchant_name: str

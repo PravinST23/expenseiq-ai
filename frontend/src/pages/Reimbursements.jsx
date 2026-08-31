@@ -33,7 +33,7 @@ export default function Reimbursements() {
 
     try {
       // processed_by is intentionally omitted - the backend takes
-      // it from the JWT identity (L2_FINANCE/L3_CFO only).
+      // it from the JWT identity (CFO only).
       await expensesApi.updateReimbursement(expense.id, {
         reimbursement_state: 'PAID',
       })

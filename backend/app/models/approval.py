@@ -39,6 +39,15 @@ class ExpenseApproval(BaseModel):
         nullable=False,
     )
 
+    # Nullable only for the "System" auto-approval action (see
+    # ApprovalWorkflow.decide); every human approval populates this
+    # with the real resolved approver (RM / skip-level manager /
+    # CFO), not a free-text name the caller can forge.
+    approver_employee_id: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("employees.id"),
+        nullable=True,
+    )
+
     approver_role: Mapped[str] = mapped_column(
         String(30),
         nullable=False,

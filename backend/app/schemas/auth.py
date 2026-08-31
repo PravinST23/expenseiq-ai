@@ -11,6 +11,7 @@ from uuid import UUID
 from pydantic import BaseModel
 from pydantic import ConfigDict
 from pydantic import EmailStr
+from pydantic import Field
 
 
 class LoginRequest(BaseModel):
@@ -20,6 +21,30 @@ class LoginRequest(BaseModel):
 
     email: EmailStr
     password: str
+
+
+class SignupRequest(BaseModel):
+    """
+    Request schema for POST /auth/signup - the public self-service
+    registration path. Always creates an EMPLOYEE-role account
+    (there is no way to request HR_HEAD/CFO here); employee_code is
+    generated server-side.
+    """
+
+    full_name: str = Field(..., examples=["Ananya Sharma"])
+    email: EmailStr
+    password: str = Field(..., min_length=6)
+    phone_number: str | None = None
+    department: str
+    designation: str
+    team_id: UUID = Field(
+        ...,
+        description="Which MAC team this employee belongs to.",
+    )
+    manager_id: UUID | None = Field(
+        default=None,
+        description="Reporting Manager - pick your RM from the employee list.",
+    )
 
 
 class TokenResponse(BaseModel):

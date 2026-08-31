@@ -15,7 +15,7 @@ jobs:
       postgres:
         image: postgres:16-alpine
         env:
-          POSTGRES_DB: expenseiq
+          POSTGRES_DB: expenseiq_test
           POSTGRES_USER: expenseiq_user
           POSTGRES_PASSWORD: ci_password
         ports:
@@ -57,7 +57,7 @@ jobs:
           DEBUG=False
           POSTGRES_HOST=localhost
           POSTGRES_PORT=5432
-          POSTGRES_DATABASE=expenseiq
+          POSTGRES_DATABASE=expenseiq_test
           POSTGRES_USER=expenseiq_user
           POSTGRES_PASSWORD=ci_password
           GEMINI_API_KEY=ci-placeholder

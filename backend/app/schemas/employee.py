@@ -15,9 +15,8 @@ from pydantic import Field
 
 EmployeeRole = Literal[
     "EMPLOYEE",
-    "L1_MANAGER",
-    "L2_FINANCE",
-    "L3_CFO",
+    "HR_HEAD",
+    "CFO",
 ]
 
 
@@ -62,23 +61,33 @@ class EmployeeBase(BaseModel):
         examples=["Software Engineer"],
     )
 
-    manager_name: str | None = Field(
+    team_id: UUID | None = Field(
         default=None,
-        description="Reporting Manager",
-        examples=["John Smith"],
+        description="Which MAC team this employee belongs to.",
+    )
+
+    manager_id: UUID | None = Field(
+        default=None,
+        description=(
+            "Reporting Manager (RM) - drives approval routing. "
+            "Null only for the CFO/HR Head at the top of the chain."
+        ),
     )
 
 
 class EmployeeCreate(EmployeeBase):
     """
-    Request schema for creating an Employee.
+    Request schema for creating an Employee. Gated to HR_HEAD - see
+    POST /auth/signup for the public self-service path, which forces
+    role=EMPLOYEE and cannot set it.
     """
 
     role: EmployeeRole = Field(
         default="EMPLOYEE",
         description=(
-            "Approval routing role. L1_MANAGER/L2_FINANCE/L3_CFO "
-            "employees can act on the approval queue at that level."
+            "HR_HEAD and CFO are the two department-head roles that "
+            "terminate every approval chain - see "
+            "app.workflow.manager_chain."
         ),
     )
 
@@ -87,8 +96,7 @@ class EmployeeCreate(EmployeeBase):
         min_length=6,
         description=(
             "Optional - only employees created with a password can "
-            "log in via /api/v1/auth/login. Omit for records that "
-            "never need to authenticate (most seed/demo data)."
+            "log in via /api/v1/auth/login."
         ),
     )
 
@@ -104,7 +112,8 @@ class EmployeeUpdate(BaseModel):
     phone_number: str | None = None
     department: str | None = None
     designation: str | None = None
-    manager_name: str | None = None
+    team_id: UUID | None = None
+    manager_id: UUID | None = None
     employee_status: str | None = None
     is_active: bool | None = None
     policy_tier: str | None = None
@@ -125,6 +134,14 @@ class EmployeeResponse(EmployeeBase):
     role: str
     has_password: bool = Field(
         description="Whether this employee can log in.",
+    )
+    manager_name: str | None = Field(
+        default=None,
+        description="Denormalized from manager_id for display.",
+    )
+    team_name: str | None = Field(
+        default=None,
+        description="Denormalized from team_id for display.",
     )
 
     model_config = ConfigDict(

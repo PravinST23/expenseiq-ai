@@ -33,7 +33,16 @@ class ExpenseService:
         self,
         db: Session,
         expense: ExpenseCreate,
+        current_employee: Employee | None = None,
     ):
+        """
+        current_employee, when provided (always true over the
+        authenticated HTTP API - see app.api.v1.expense), forces
+        employee_id to the logged-in employee - a caller cannot
+        submit a claim as anyone else. Internal trusted callers
+        (import/seed scripts) may omit it and set employee_id
+        directly in the schema.
+        """
 
         existing = expense_repository.get_by_expense_number(
             db,
@@ -46,9 +55,12 @@ class ExpenseService:
                 detail="Expense Number already exists.",
             )
 
-        new_expense = Expense(
-            **expense.model_dump()
-        )
+        expense_data = expense.model_dump()
+
+        if current_employee is not None:
+            expense_data["employee_id"] = current_employee.id
+
+        new_expense = Expense(**expense_data)
 
         return expense_repository.create(
             db,

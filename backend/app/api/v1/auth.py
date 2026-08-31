@@ -7,6 +7,7 @@ Project: ExpenseIQ
 
 from fastapi import APIRouter
 from fastapi import Depends
+from fastapi import status
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_current_employee
@@ -14,6 +15,7 @@ from app.api.deps import get_db
 from app.models.employee import Employee
 from app.schemas.auth import CurrentEmployeeResponse
 from app.schemas.auth import LoginRequest
+from app.schemas.auth import SignupRequest
 from app.schemas.auth import TokenResponse
 from app.services.auth_service import auth_service
 
@@ -21,6 +23,26 @@ router = APIRouter(
     prefix="/auth",
     tags=["Auth"],
 )
+
+
+@router.post(
+    "/signup",
+    response_model=TokenResponse,
+    status_code=status.HTTP_201_CREATED,
+    summary="Sign Up",
+    description=(
+        "Public self-service registration - always creates an "
+        "EMPLOYEE-role account and logs you straight in. Pick your "
+        "MAC team and your Reporting Manager from the employee "
+        "list."
+    ),
+)
+def signup(
+    signup_request: SignupRequest,
+    db: Session = Depends(get_db),
+):
+
+    return auth_service.signup(db, signup_request)
 
 
 @router.post(

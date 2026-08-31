@@ -15,6 +15,8 @@ from fastapi import status
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_db
+from app.api.deps import require_roles
+from app.models.employee import Employee
 from app.schemas.employee import EmployeeCreate
 from app.schemas.employee import EmployeeResponse
 from app.schemas.employee import EmployeeUpdate
@@ -31,10 +33,15 @@ router = APIRouter(
     response_model=EmployeeResponse,
     status_code=status.HTTP_201_CREATED,
     summary="Create Employee",
+    description=(
+        "HR_HEAD only - can set role/manager/team directly. Regular "
+        "employees register via the public POST /auth/signup."
+    ),
 )
 def create_employee(
     employee: EmployeeCreate,
     db: Session = Depends(get_db),
+    current_employee: Employee = Depends(require_roles("HR_HEAD")),
 ):
 
     return employee_service.create_employee(
@@ -75,11 +82,13 @@ def get_employee(
     "/{employee_id}",
     response_model=EmployeeResponse,
     summary="Update Employee",
+    description="HR_HEAD only.",
 )
 def update_employee(
     employee_id: UUID,
     employee: EmployeeUpdate,
     db: Session = Depends(get_db),
+    current_employee: Employee = Depends(require_roles("HR_HEAD")),
 ):
 
     return employee_service.update_employee(
@@ -93,10 +102,12 @@ def update_employee(
     "/{employee_id}",
     status_code=status.HTTP_204_NO_CONTENT,
     summary="Delete Employee",
+    description="HR_HEAD only.",
 )
 def delete_employee(
     employee_id: UUID,
     db: Session = Depends(get_db),
+    current_employee: Employee = Depends(require_roles("HR_HEAD")),
 ):
 
     employee_service.delete_employee(

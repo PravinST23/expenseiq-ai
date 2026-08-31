@@ -2,11 +2,13 @@ import { Navigate, Route, Routes } from 'react-router-dom'
 import Layout from './components/Layout'
 import { useSession } from './context/session'
 import Login from './pages/Login'
+import Signup from './pages/Signup'
 import SubmitExpense from './pages/SubmitExpense'
 import MyExpenses from './pages/MyExpenses'
 import ExpenseDetail from './pages/ExpenseDetail'
 import ApprovalQueue from './pages/ApprovalQueue'
 import Reimbursements from './pages/Reimbursements'
+import TeamsAdmin from './pages/TeamsAdmin'
 import Analytics from './pages/Analytics'
 
 function RequireAuth({ children }) {
@@ -26,6 +28,7 @@ export default function App() {
   return (
     <Routes>
       <Route path="/login" element={<Login />} />
+      <Route path="/signup" element={<Signup />} />
 
       <Route
         element={
@@ -40,6 +43,7 @@ export default function App() {
         <Route path="/expenses/:id" element={<ExpenseDetail />} />
         <Route path="/approvals" element={<ApprovalQueue />} />
         <Route path="/reimbursements" element={<Reimbursements />} />
+        <Route path="/teams" element={<TeamsAdmin />} />
         <Route path="/analytics" element={<Analytics />} />
       </Route>
 

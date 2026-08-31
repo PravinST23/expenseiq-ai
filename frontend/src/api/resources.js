@@ -9,7 +9,22 @@ export const authApi = {
     apiClient
       .post('/auth/login', { email, password })
       .then((r) => r.data),
+  signup: (payload) =>
+    apiClient.post('/auth/signup', payload).then((r) => r.data),
   me: () => apiClient.get('/auth/me').then((r) => r.data),
+}
+
+// ---------------------------------------------------------
+// Teams (MAC)
+// ---------------------------------------------------------
+
+export const teamsApi = {
+  list: () => apiClient.get('/teams/').then((r) => r.data),
+  create: (payload) =>
+    apiClient.post('/teams/', payload).then((r) => r.data),
+  update: (id, payload) =>
+    apiClient.put(`/teams/${id}`, payload).then((r) => r.data),
+  remove: (id) => apiClient.delete(`/teams/${id}`).then((r) => r.data),
 }
 
 // ---------------------------------------------------------
@@ -31,6 +46,7 @@ export const projectsApi = {
   list: () => apiClient.get('/projects/').then((r) => r.data),
   create: (payload) =>
     apiClient.post('/projects/', payload).then((r) => r.data),
+  remove: (id) => apiClient.delete(`/projects/${id}`).then((r) => r.data),
 }
 
 // ---------------------------------------------------------
@@ -42,6 +58,8 @@ export const expensesApi = {
   get: (id) => apiClient.get(`/expenses/${id}`).then((r) => r.data),
   create: (payload) =>
     apiClient.post('/expenses/', payload).then((r) => r.data),
+  pendingForMe: () =>
+    apiClient.get('/expenses/pending-for-me').then((r) => r.data),
   updateReimbursement: (id, payload) =>
     apiClient
       .patch(`/expenses/${id}/reimbursement`, payload)

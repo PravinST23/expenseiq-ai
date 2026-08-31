@@ -44,9 +44,21 @@ class ProjectBase(BaseModel):
 
     project_budget: Decimal | None = None
 
+    # Optional at the base/response level (older rows may predate
+    # MAC teams); required specifically on create - see
+    # ProjectCreate.
+    team_id: UUID | None = Field(
+        default=None,
+        description="Which MAC team runs this client project.",
+    )
+
 
 class ProjectCreate(ProjectBase):
-    pass
+
+    team_id: UUID = Field(
+        ...,
+        description="Which MAC team runs this client project.",
+    )
 
 
 class ProjectUpdate(BaseModel):
@@ -61,6 +73,7 @@ class ProjectUpdate(BaseModel):
     project_budget: Decimal | None = None
     project_status: str | None = None
     is_active: bool | None = None
+    team_id: UUID | None = None
 
 
 class ProjectResponse(ProjectBase):
@@ -68,6 +81,7 @@ class ProjectResponse(ProjectBase):
     id: UUID
     project_status: str
     is_active: bool
+    team_name: str | None = None
 
     model_config = ConfigDict(
         from_attributes=True

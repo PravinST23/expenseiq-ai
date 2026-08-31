@@ -76,13 +76,13 @@ def test_token_round_trips_employee_id_and_role():
 
     token, expires_at = create_access_token(
         employee_id=employee_id,
-        role="L2_FINANCE",
+        role="CFO",
     )
 
     payload = decode_access_token(token)
 
     assert payload["sub"] == str(employee_id)
-    assert payload["role"] == "L2_FINANCE"
+    assert payload["role"] == "CFO"
     assert expires_at is not None
 
 
@@ -117,15 +117,26 @@ def test_tampered_token_is_rejected():
 
 
 # ---------------------------------------------------------
-# Employee creation with password
+# Employee creation with password (HR_HEAD only)
 # ---------------------------------------------------------
 
 
-def test_create_employee_with_password_never_leaks_hash(client):
+def test_create_employee_requires_hr_head(client):
 
     response = client.post(
         f"{EMPLOYEE_URL}/",
         json=create_employee_payload(),
+    )
+
+    assert response.status_code == 401
+
+
+def test_create_employee_with_password_never_leaks_hash(client, hr_head_headers):
+
+    response = client.post(
+        f"{EMPLOYEE_URL}/",
+        json=create_employee_payload(),
+        headers=hr_head_headers,
     )
 
     assert response.status_code == 201
@@ -137,11 +148,15 @@ def test_create_employee_with_password_never_leaks_hash(client):
     assert "hashed_password" not in data
 
 
-def test_create_employee_without_password_cannot_log_in(client):
+def test_create_employee_without_password_cannot_log_in(client, hr_head_headers):
 
     payload = create_employee_payload(password=None)
 
-    response = client.post(f"{EMPLOYEE_URL}/", json=payload)
+    response = client.post(
+        f"{EMPLOYEE_URL}/",
+        json=payload,
+        headers=hr_head_headers,
+    )
 
     assert response.status_code == 201
     assert response.json()["has_password"] is False
@@ -159,11 +174,11 @@ def test_create_employee_without_password_cannot_log_in(client):
 # ---------------------------------------------------------
 
 
-def test_login_success_returns_bearer_token(client):
+def test_login_success_returns_bearer_token(client, hr_head_headers):
 
     payload = create_employee_payload(password="Password@123")
 
-    client.post(f"{EMPLOYEE_URL}/", json=payload)
+    client.post(f"{EMPLOYEE_URL}/", json=payload, headers=hr_head_headers)
 
     response = client.post(
         f"{AUTH_URL}/login",
@@ -179,11 +194,11 @@ def test_login_success_returns_bearer_token(client):
     assert len(data["access_token"]) > 20
 
 
-def test_login_wrong_password_rejected(client):
+def test_login_wrong_password_rejected(client, hr_head_headers):
 
     payload = create_employee_payload(password="Password@123")
 
-    client.post(f"{EMPLOYEE_URL}/", json=payload)
+    client.post(f"{EMPLOYEE_URL}/", json=payload, headers=hr_head_headers)
 
     response = client.post(
         f"{AUTH_URL}/login",
@@ -204,15 +219,62 @@ def test_login_unknown_email_rejected(client):
 
 
 # ---------------------------------------------------------
+# Signup API (public)
+# ---------------------------------------------------------
+
+
+def test_signup_creates_employee_role_and_logs_in(client, hr_head_headers):
+
+    # A team must exist for the sign-up form's team picker.
+    team = client.post(
+        "/api/v1/teams/",
+        json={"team_code": f"MAC-{uuid4().hex[:6]}", "team_name": "Signup Test Team"},
+        headers=hr_head_headers,
+    ).json()
+
+    unique = uuid4().hex[:8]
+
+    response = client.post(
+        f"{AUTH_URL}/signup",
+        json={
+            "full_name": "New Hire",
+            "email": f"newhire{unique}@example.com",
+            "password": "NewHire@123",
+            "department": "Engineering",
+            "designation": "Associate",
+            "team_id": team["id"],
+        },
+    )
+
+    assert response.status_code == 201
+
+    data = response.json()
+
+    assert data["role"] == "EMPLOYEE"
+    assert len(data["access_token"]) > 20
+
+
+def test_signup_cannot_set_privileged_role(client):
+    """
+    SignupRequest has no role field at all - there is no way to
+    request HR_HEAD/CFO through public self-registration.
+    """
+
+    from app.schemas.auth import SignupRequest
+
+    assert "role" not in SignupRequest.model_fields
+
+
+# ---------------------------------------------------------
 # Token validation via /auth/me
 # ---------------------------------------------------------
 
 
-def _login(client, role="EMPLOYEE"):
+def _login(client, hr_head_headers, role="EMPLOYEE"):
 
     payload = create_employee_payload(role=role, password="Password@123")
 
-    client.post(f"{EMPLOYEE_URL}/", json=payload)
+    client.post(f"{EMPLOYEE_URL}/", json=payload, headers=hr_head_headers)
 
     login = client.post(
         f"{AUTH_URL}/login",
@@ -239,9 +301,9 @@ def test_me_rejects_garbage_token(client):
     assert response.status_code == 401
 
 
-def test_me_returns_identity_for_valid_token(client):
+def test_me_returns_identity_for_valid_token(client, hr_head_headers):
 
-    token, payload = _login(client)
+    token, payload = _login(client, hr_head_headers)
 
     response = client.get(
         f"{AUTH_URL}/me",

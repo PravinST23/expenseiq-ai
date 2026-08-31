@@ -24,7 +24,7 @@ def test_auto_approve_level_1_is_system_approved():
     assert result["current_approval_level"] == 1
 
 
-def test_escalate_level_2_awaits_finance():
+def test_escalate_level_2_awaits_reporting_manager():
 
     result = approval_workflow.decide(
         AutoApprovalResult(
@@ -34,20 +34,6 @@ def test_escalate_level_2_awaits_finance():
         )
     )
 
-    assert result["approval_status"] == "Pending L1 Manager Approval"
+    assert result["approval_status"] == "Pending Reporting Manager Approval"
     assert result["approved_by"] is None
     assert result["current_approval_level"] == 1
-
-
-def test_role_and_level_mapping_round_trip():
-
-    for level in (1, 2, 3):
-
-        role = approval_workflow.role_for_level(level)
-
-        assert approval_workflow.level_for_role(role) == level
-
-
-def test_unknown_role_returns_none():
-
-    assert approval_workflow.level_for_role("UNKNOWN") is None

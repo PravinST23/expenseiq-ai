@@ -12,34 +12,18 @@ from pydantic import BaseModel
 from pydantic import ConfigDict
 
 
-class ApprovalBase(BaseModel):
+class ApprovalCreate(BaseModel):
     """
-    Common Approval fields.
+    Request schema for creating an approval. Who is acting and at
+    what level is entirely derived server-side from the
+    authenticated employee + the manager-chain resolver (see
+    ApprovalService.create_approval) - the caller only says what
+    they did.
     """
 
     expense_id: UUID
-
-    # approver_role/approver_name/approval_level are only actually
-    # used verbatim when the caller drives ApprovalService directly
-    # (see scripts/seed_demo_data.py). Over the authenticated HTTP
-    # API, they're overridden server-side from the JWT's identity -
-    # see ApprovalService.create_approval - so a caller can never
-    # forge an approval as a role/person they aren't. Optional here
-    # so the (now-required-to-be-authenticated) frontend doesn't
-    # need to send placeholder values.
-    approver_role: str = "EMPLOYEE"
-    approval_level: int = 1
-    approver_name: str = "Unknown"
-
     action: str
     comments: str | None = None
-
-
-class ApprovalCreate(ApprovalBase):
-    """
-    Request schema for creating an approval.
-    """
-    pass
 
 
 class ApprovalUpdate(BaseModel):
@@ -51,12 +35,19 @@ class ApprovalUpdate(BaseModel):
     comments: str | None = None
 
 
-class ApprovalResponse(ApprovalBase):
+class ApprovalResponse(BaseModel):
     """
     Response schema.
     """
 
     id: UUID
+    expense_id: UUID
+    approver_employee_id: UUID | None = None
+    approver_role: str
+    approval_level: int
+    approver_name: str
+    action: str
+    comments: str | None = None
     approved_at: datetime
 
     model_config = ConfigDict(

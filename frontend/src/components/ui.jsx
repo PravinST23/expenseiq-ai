@@ -69,7 +69,9 @@ export function Button({
 }) {
   const variants = {
     primary:
-      'bg-slate-900 text-white hover:bg-slate-800 disabled:bg-slate-300',
+      'bg-accent-600 text-white hover:bg-accent-700 disabled:bg-slate-200 disabled:text-slate-400',
+    dark:
+      'bg-primary-900 text-white hover:bg-primary-800 disabled:bg-slate-300',
     success:
       'bg-emerald-600 text-white hover:bg-emerald-700 disabled:bg-emerald-300',
     danger: 'bg-red-600 text-white hover:bg-red-700 disabled:bg-red-300',
@@ -79,7 +81,7 @@ export function Button({
 
   return (
     <button
-      className={`inline-flex items-center justify-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium transition disabled:cursor-not-allowed ${variants[variant]} ${className}`}
+      className={`inline-flex items-center justify-center gap-1.5 rounded-lg px-4 py-2 text-sm font-semibold transition-all duration-150 active:scale-[0.98] disabled:cursor-not-allowed disabled:active:scale-100 ${variants[variant]} ${className}`}
       {...props}
     >
       {children}
@@ -149,4 +151,4 @@ export function Field({ label, children, hint }) {
 }
 
 export const inputClass =
-  'w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:border-slate-500 focus:outline-none focus:ring-2 focus:ring-slate-200'
+  'w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:border-accent-600 focus:outline-none focus:ring-2 focus:ring-accent-600/20'

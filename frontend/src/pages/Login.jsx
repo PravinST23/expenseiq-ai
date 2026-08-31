@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { authApi } from '../api/resources'
 import { useSession } from '../context/session'
 import {
@@ -9,12 +9,12 @@ import {
   Field,
   inputClass,
 } from '../components/ui'
+import BrandMark from '../components/BrandMark'
 
 const HOME_BY_ROLE = {
   EMPLOYEE: '/submit',
-  L1_MANAGER: '/approvals',
-  L2_FINANCE: '/approvals',
-  L3_CFO: '/approvals',
+  HR_HEAD: '/approvals',
+  CFO: '/approvals',
 }
 
 export default function Login() {
@@ -52,20 +52,13 @@ export default function Login() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-slate-100 px-4">
+    <div className="flex min-h-screen items-center justify-center bg-primary-950 px-4">
       <Card className="w-full max-w-md p-8">
-        <div className="mb-6 flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-slate-900 text-sm font-bold text-white">
-            IQ
-          </div>
-          <div>
-            <h1 className="text-lg font-semibold text-slate-900">
-              ExpenseIQ
-            </h1>
-            <p className="text-xs text-slate-500">
-              AI-First Expense Management
-            </p>
-          </div>
+        <div className="mb-6">
+          <BrandMark size="lg" />
+          <p className="mt-2 text-xs text-slate-500">
+            AI-First Expense Management
+          </p>
         </div>
 
         <ErrorBanner message={error} />
@@ -98,20 +91,15 @@ export default function Login() {
           </Button>
         </form>
 
-        <div className="mt-6 rounded-lg bg-slate-50 p-3 text-xs text-slate-500 ring-1 ring-inset ring-slate-200">
-          <p className="font-medium text-slate-600">
-            Demo accounts (run scripts/seed_demo_data.py first)
-          </p>
-          <p className="mt-1">
-            Any seeded email · password <code>Demo@12345</code>
-          </p>
-          <ul className="mt-1 space-y-0.5">
-            <li>ananya.sharma@psiog.demo - Employee</li>
-            <li>karthik.iyer@psiog.demo - L1 Manager</li>
-            <li>fatima.khan@psiog.demo - L2 Finance</li>
-            <li>meera.krishnan@psiog.demo - L3 CFO</li>
-          </ul>
-        </div>
+        <p className="mt-5 text-center text-xs text-slate-500">
+          New here?{' '}
+          <Link
+            to="/signup"
+            className="font-semibold text-accent-700 hover:underline"
+          >
+            Create an account
+          </Link>
+        </p>
       </Card>
     </div>
   )
