@@ -48,9 +48,14 @@ pre-seeded accounts.
 
 **Actual, at the client's (Psiog's) explicit request:**
 
-- **Rebrand** - frontend now matches Psiog's real brand (dark teal +
-  lime color palette, Plus Jakarta Sans, wordmark) instead of the
-  generic placeholder theme.
+- **Rebrand** - the frontend went through several iterations at the
+  client's request (first Psiog's own teal/lime brand, then a
+  notebook/journal aesthetic) before settling on its current look: a
+  professional slate/navy + blue palette modeled on how real
+  AI-driven expense/finance SaaS products (Brex, Ramp, Mercury,
+  Expensify) are actually designed - independent of any single
+  company's branding, per the client's final instruction to design
+  it that way rather than reuse their brand colors.
 - **Real self-service auth** - added `POST /auth/signup`; anyone can
   register as an `EMPLOYEE` and pick their own team/manager. Sign In
   and Sign Up pages replace the old login-only screen with a
@@ -93,7 +98,40 @@ frontend lint/build were re-verified green after the change; see
 (wrong-approver rejection, escalation-when-chain-incomplete, and
 approver-identity server-resolution tests).
 
-## 4. Robustness hardening added during this pass (not a deviation, a fix)
+## 4. Database schema names differ from the approved proposal's Section 5.4
+
+**Approved:** A schema with separate, single-purpose tables per the
+proposal's exact naming: `expense_claims`, `ocr_extractions`,
+`policy_violations`, `ai_risk_scores`, `workflow_audit_trails`,
+`reimbursement_status`.
+
+**Actual:** The implemented schema consolidates several of these into
+denormalized tables with different names: `expenses` (not
+`expense_claims`, and reimbursement state/history live as columns on
+this table rather than a separate `reimbursement_status` table),
+`expense_ai_analysis` (one row per receipt covering what the proposal
+split across `ocr_extractions` + `ai_risk_scores`), `compliance_checks`
+(not `policy_violations`), `expense_approvals` (not
+`workflow_audit_trails`). `duplicate_checks` and `employees` match the
+proposal's naming as-is.
+
+**Why:** This was an engineering judgment call made while building the
+AI pipeline, not a scope decision - `expenses` is deliberately the
+denormalized read model the manager dashboard and Power BI feeds query
+directly (see `database/DatabaseDesign.md`), so the pipeline's
+per-receipt output, risk score, and reimbursement state are columns on
+one row instead of joins across four tables for the common case. It
+was not flagged as a deviation when it was built, and is being
+disclosed now on discovering the mismatch against the approved
+proposal's Section 5.4 during a full reconciliation pass.
+
+**Impact:** None on functionality - the actual schema fully covers
+every field the proposal's version would have (audit trail, risk
+scores, policy reasons, reimbursement state), just organized
+differently. `database/DatabaseDesign.md` is the source of truth for
+the schema as actually built.
+
+## 5. Robustness hardening added during this pass (not a deviation, a fix)
 
 Neither the Gemini nor Ollama client had an explicit request timeout,
 so a stalled network path could hang the entire pipeline indefinitely

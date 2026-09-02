@@ -6,6 +6,9 @@ Project: ExpenseIQ
 
 End-to-end LangChain-orchestrated receipt-to-record pipeline:
 
+  0. AI Receipt Quality Validator   -> blur / low-light / crop check,
+                                        flags requires_reupload but
+                                        does not block the pipeline
   1. Tesseract OCR                  -> raw text
   2. Hybrid Router (Gemini/Ollama)  -> structured receipt JSON
   3. LangChain Output Parser        -> validated structured record
@@ -23,6 +26,7 @@ from sqlalchemy.orm import Session
 from app.ai.groq_service import groq_service
 from app.ai.hybrid_router import hybrid_router
 from app.ai.ocr_service import ocr_service
+from app.ai.quality_validator import quality_validator
 from app.langchain.output_parser import output_parser
 from app.models.approval import ExpenseApproval
 from app.models.expense import Expense
@@ -68,6 +72,26 @@ class ExpensePipeline:
         Run the full receipt -> structured, risk-scored,
         routed expense record pipeline for a single receipt.
         """
+
+        # -------------------------------------------------
+        # 0. AI Receipt Quality Validator
+        # -------------------------------------------------
+        # Runs before any OCR/AI call so a genuinely unreadable
+        # photo is flagged with a specific, actionable reason
+        # instead of just producing a low-confidence extraction
+        # further down the pipeline. Advisory, not a hard block -
+        # the employee decides whether to re-upload; a blurry photo
+        # may still extract usable fields.
+
+        try:
+
+            quality = quality_validator.assess(image_path)
+
+        except Exception as ex:
+
+            print(f"Quality Validator Error : {ex}")
+
+            quality = None
 
         # -------------------------------------------------
         # 1. OCR
@@ -248,6 +272,21 @@ class ExpensePipeline:
         # -------------------------------------------------
         # Merge Results
         # -------------------------------------------------
+
+        if quality is not None:
+            structured_result["quality_score"] = quality.score
+            structured_result["quality_issues"] = (
+                ",".join(quality.issues) if quality.issues else None
+            )
+            structured_result["requires_reupload"] = (
+                not quality.is_acceptable
+            )
+            structured_result["quality_reason"] = quality.reason
+        else:
+            structured_result["quality_score"] = None
+            structured_result["quality_issues"] = None
+            structured_result["requires_reupload"] = False
+            structured_result["quality_reason"] = None
 
         structured_result["ocr_text"] = ocr_text
 

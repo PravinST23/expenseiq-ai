@@ -98,6 +98,14 @@ class ReceiptResponse(ReceiptBase):
 
     extracted_json: str | None
 
+    # Quality Validator (denormalized from the latest AIAnalysis)
+
+    quality_score: float | None = None
+
+    quality_issues: str | None = None
+
+    requires_reupload: bool = False
+
     model_config = ConfigDict(
         from_attributes=True
     )

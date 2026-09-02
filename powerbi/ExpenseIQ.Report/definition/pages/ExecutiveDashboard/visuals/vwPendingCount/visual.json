@@ -1,0 +1,43 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.7.0/schema.json",
+  "name": "vwPendingCount",
+  "position": {
+    "x": 852,
+    "y": 90,
+    "z": 1,
+    "height": 140,
+    "width": 195,
+    "tabOrder": 5
+  },
+  "visual": {
+    "visualType": "cardVisual",
+    "query": {
+      "queryState": {
+        "Data": {
+          "projections": [
+            {
+              "field": {
+                "Aggregation": {
+                  "Expression": {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "Overview"
+                        }
+                      },
+                      "Property": "Pending Approval"
+                    }
+                  },
+                  "Function": 0
+                }
+              },
+              "queryRef": "Sum(Overview.Pending Approval)",
+              "nativeQueryRef": "Pending Approval"
+            }
+          ]
+        }
+      }
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

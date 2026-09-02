@@ -1,0 +1,43 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.7.0/schema.json",
+  "name": "vwAvgConfidence",
+  "position": {
+    "x": 950,
+    "y": 90,
+    "z": 1,
+    "height": 140,
+    "width": 295,
+    "tabOrder": 4
+  },
+  "visual": {
+    "visualType": "cardVisual",
+    "query": {
+      "queryState": {
+        "Data": {
+          "projections": [
+            {
+              "field": {
+                "Aggregation": {
+                  "Expression": {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "AIAccuracy"
+                        }
+                      },
+                      "Property": "Avg Confidence"
+                    }
+                  },
+                  "Function": 0
+                }
+              },
+              "queryRef": "Sum(AIAccuracy.Avg Confidence)",
+              "nativeQueryRef": "Avg Confidence"
+            }
+          ]
+        }
+      }
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

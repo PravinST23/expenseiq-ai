@@ -1,0 +1,40 @@
+table ReimbursementLiability
+	lineageTag: b1e2c3d4-0005-4a00-8000-000000000001
+
+	measure 'Outstanding Liability' = CALCULATE(SUM(ReimbursementLiability[TotalAmount]), ReimbursementLiability[State] IN {"PENDING","APPROVED"})
+		formatString: "₹"\ #,0.00
+		lineageTag: b1e2c3d4-0005-4a00-8000-000000000002
+
+	column State
+		dataType: string
+		lineageTag: b1e2c3d4-0005-4a00-8000-000000000003
+		summarizeBy: none
+		sourceColumn: State
+
+	column TotalAmount
+		dataType: double
+		formatString: "₹"\ #,0.00
+		lineageTag: b1e2c3d4-0005-4a00-8000-000000000004
+		summarizeBy: sum
+		sourceColumn: TotalAmount
+
+	column Count
+		dataType: int64
+		lineageTag: b1e2c3d4-0005-4a00-8000-000000000005
+		summarizeBy: sum
+		sourceColumn: Count
+
+	partition ReimbursementLiability = m
+		mode: import
+		source =
+				let
+				    Source = Json.Document(Web.Contents("http://127.0.0.1:8000/api/v1/analytics/reimbursement-liability")),
+				    ByState = Source[by_state],
+				    #"Converted to Table" = Table.FromList(ByState, Splitter.SplitByNothing(), null, null, ExtraValues.Error),
+				    #"Expanded Column1" = Table.ExpandRecordColumn(#"Converted to Table", "Column1", {"state", "total_amount", "count"}, {"State", "TotalAmount", "Count"}),
+				    #"Changed Type" = Table.TransformColumnTypes(#"Expanded Column1",{{"State", type text}, {"TotalAmount", type number}, {"Count", Int64.Type}})
+				in
+				    #"Changed Type"
+
+	annotation PBI_ResultType = Table
+

@@ -1,0 +1,108 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.7.0/schema.json",
+  "name": "vwReceiptTable",
+  "position": {
+    "x": 20,
+    "y": 610,
+    "z": 1,
+    "height": 160,
+    "width": 1240,
+    "tabOrder": 7
+  },
+  "visual": {
+    "visualType": "tableEx",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "ReceiptAIDetail"
+                    }
+                  },
+                  "Property": "ReceiptNumber"
+                }
+              },
+              "queryRef": "ReceiptAIDetail.ReceiptNumber",
+              "nativeQueryRef": "ReceiptNumber"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "ReceiptAIDetail"
+                    }
+                  },
+                  "Property": "MerchantName"
+                }
+              },
+              "queryRef": "ReceiptAIDetail.MerchantName",
+              "nativeQueryRef": "MerchantName"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "ReceiptAIDetail"
+                    }
+                  },
+                  "Property": "Amount"
+                }
+              },
+              "queryRef": "ReceiptAIDetail.Amount",
+              "nativeQueryRef": "Amount"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "ReceiptAIDetail"
+                    }
+                  },
+                  "Property": "ProcessingEngine"
+                }
+              },
+              "queryRef": "ReceiptAIDetail.ProcessingEngine",
+              "nativeQueryRef": "ProcessingEngine"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "ReceiptAIDetail"
+                    }
+                  },
+                  "Property": "PolicyStatus"
+                }
+              },
+              "queryRef": "ReceiptAIDetail.PolicyStatus",
+              "nativeQueryRef": "PolicyStatus"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "ReceiptAIDetail"
+                    }
+                  },
+                  "Property": "AIRecommendation"
+                }
+              },
+              "queryRef": "ReceiptAIDetail.AIRecommendation",
+              "nativeQueryRef": "AIRecommendation"
+            }
+          ]
+        }
+      }
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

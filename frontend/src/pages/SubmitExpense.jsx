@@ -296,6 +296,29 @@ export default function SubmitExpense() {
             Receipt processed successfully.
           </p>
 
+          {receipt?.requires_reupload ? (
+            <div className="mt-3 rounded-lg bg-amber-50 px-4 py-3 text-sm text-amber-800 ring-1 ring-inset ring-amber-600/20">
+              <p className="font-medium">
+                This photo could be clearer (quality score{' '}
+                {receipt.quality_score}/100
+                {receipt.quality_issues
+                  ? ` - ${receipt.quality_issues.split(',').join(', ')}`
+                  : ''}
+                ). Extraction accuracy may be reduced.
+              </p>
+              <button
+                type="button"
+                onClick={() => {
+                  setFile(null)
+                  setStep('receipt')
+                }}
+                className="mt-2 text-xs font-semibold underline"
+              >
+                Re-upload a clearer photo
+              </button>
+            </div>
+          ) : null}
+
           <div className="mt-4 flex flex-wrap gap-2">
             <StatusBadge status={expense.status} />
             <RecommendationBadge

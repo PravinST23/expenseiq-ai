@@ -1,0 +1,47 @@
+{
+  "name": "ExpenseIQTheme",
+  "dataColors": [
+    "#4B2E83",
+    "#17A398",
+    "#F2994A",
+    "#2D9CDB",
+    "#C4D82E",
+    "#27AE60",
+    "#EB5757",
+    "#6C3FA6",
+    "#9B51E0",
+    "#56CCF2"
+  ],
+  "good": "#17A398",
+  "neutral": "#F2994A",
+  "bad": "#EB5757",
+  "maximum": "#4B2E83",
+  "center": "#9B51E0",
+  "minimum": "#F3EEFB",
+  "null": "#B3B0AD",
+  "background": "#FFFFFF",
+  "foreground": "#252423",
+  "tableAccent": "#4B2E83",
+  "textClasses": {
+    "callout": {
+      "fontSize": 28,
+      "fontFace": "Segoe UI Semibold",
+      "color": "#4B2E83"
+    },
+    "title": {
+      "fontSize": 12,
+      "fontFace": "Segoe UI Semibold",
+      "color": "#252423"
+    },
+    "header": {
+      "fontSize": 12,
+      "fontFace": "Segoe UI Semibold",
+      "color": "#FFFFFF"
+    },
+    "label": {
+      "fontSize": 10,
+      "fontFace": "Segoe UI",
+      "color": "#252423"
+    }
+  }
+}

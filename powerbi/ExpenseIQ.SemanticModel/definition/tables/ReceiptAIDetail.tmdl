@@ -1,0 +1,53 @@
+table ReceiptAIDetail
+	lineageTag: b1e2c3d4-000b-4a00-8000-000000000001
+
+	column ReceiptNumber
+		dataType: string
+		lineageTag: b1e2c3d4-000b-4a00-8000-000000000002
+		summarizeBy: none
+		sourceColumn: ReceiptNumber
+
+	column MerchantName
+		dataType: string
+		lineageTag: b1e2c3d4-000b-4a00-8000-000000000003
+		summarizeBy: none
+		sourceColumn: MerchantName
+
+	column Amount
+		dataType: double
+		formatString: "₹"\ #,0.00
+		lineageTag: b1e2c3d4-000b-4a00-8000-000000000004
+		summarizeBy: sum
+		sourceColumn: Amount
+
+	column ProcessingEngine
+		dataType: string
+		lineageTag: b1e2c3d4-000b-4a00-8000-000000000005
+		summarizeBy: none
+		sourceColumn: ProcessingEngine
+
+	column PolicyStatus
+		dataType: string
+		lineageTag: b1e2c3d4-000b-4a00-8000-000000000006
+		summarizeBy: none
+		sourceColumn: PolicyStatus
+
+	column AIRecommendation
+		dataType: string
+		lineageTag: b1e2c3d4-000b-4a00-8000-000000000007
+		summarizeBy: none
+		sourceColumn: AIRecommendation
+
+	partition ReceiptAIDetail = m
+		mode: import
+		source =
+				let
+				    Source = Json.Document(Web.Contents("http://127.0.0.1:8000/api/v1/analytics/receipt-ai-detail")),
+				    #"Converted to Table" = Table.FromList(Source, Splitter.SplitByNothing(), null, null, ExtraValues.Error),
+				    #"Expanded Column1" = Table.ExpandRecordColumn(#"Converted to Table", "Column1", {"receipt_number", "merchant_name", "amount", "processing_engine", "policy_status", "ai_recommendation"}, {"ReceiptNumber", "MerchantName", "Amount", "ProcessingEngine", "PolicyStatus", "AIRecommendation"}),
+				    #"Changed Type" = Table.TransformColumnTypes(#"Expanded Column1",{{"ReceiptNumber", type text}, {"MerchantName", type text}, {"Amount", type number}, {"ProcessingEngine", type text}, {"PolicyStatus", type text}, {"AIRecommendation", type text}})
+				in
+				    #"Changed Type"
+
+	annotation PBI_ResultType = Table
+

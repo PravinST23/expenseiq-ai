@@ -1,0 +1,56 @@
+table ExpenseDetail
+	lineageTag: b1e2c3d4-000a-4a00-8000-000000000001
+
+	column EmployeeName
+		dataType: string
+		lineageTag: b1e2c3d4-000a-4a00-8000-000000000002
+		summarizeBy: none
+		sourceColumn: EmployeeName
+
+	column ProjectName
+		dataType: string
+		lineageTag: b1e2c3d4-000a-4a00-8000-000000000003
+		summarizeBy: none
+		sourceColumn: ProjectName
+
+	column ExpenseCategory
+		dataType: string
+		lineageTag: b1e2c3d4-000a-4a00-8000-000000000004
+		summarizeBy: none
+		sourceColumn: ExpenseCategory
+
+	column Amount
+		dataType: double
+		formatString: "₹"\ #,0.00
+		lineageTag: b1e2c3d4-000a-4a00-8000-000000000005
+		summarizeBy: sum
+		sourceColumn: Amount
+
+	column Status
+		dataType: string
+		lineageTag: b1e2c3d4-000a-4a00-8000-000000000006
+		summarizeBy: none
+		sourceColumn: Status
+
+	column ExpenseDate
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: b1e2c3d4-000a-4a00-8000-000000000007
+		summarizeBy: none
+		sourceColumn: ExpenseDate
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	partition ExpenseDetail = m
+		mode: import
+		source =
+				let
+				    Source = Json.Document(Web.Contents("http://127.0.0.1:8000/api/v1/analytics/expense-detail")),
+				    #"Converted to Table" = Table.FromList(Source, Splitter.SplitByNothing(), null, null, ExtraValues.Error),
+				    #"Expanded Column1" = Table.ExpandRecordColumn(#"Converted to Table", "Column1", {"employee_name", "project_name", "expense_category", "amount", "status", "expense_date"}, {"EmployeeName", "ProjectName", "ExpenseCategory", "Amount", "Status", "ExpenseDate"}),
+				    #"Changed Type" = Table.TransformColumnTypes(#"Expanded Column1",{{"EmployeeName", type text}, {"ProjectName", type text}, {"ExpenseCategory", type text}, {"Amount", type number}, {"Status", type text}, {"ExpenseDate", type date}})
+				in
+				    #"Changed Type"
+
+	annotation PBI_ResultType = Table
+

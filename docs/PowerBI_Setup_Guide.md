@@ -6,16 +6,47 @@ Desktop connects to these directly with the built-in Web connector - no
 extra ETL needed. This covers the RFP's 4 required views plus two bonus
 feeds (reimbursement liability, AI accuracy) for QA evidence.
 
-## Prerequisites
+## Fastest path: open the pre-built project
 
-1. Backend running locally: `uvicorn app.main:app --reload` (from
-   `backend/`), reachable at `http://127.0.0.1:8000`.
-2. At least a few expenses processed through the pipeline - run
-   `python scripts/bootstrap_org.py` first (one-time, creates the MAC
-   teams/projects + the first HR_HEAD), then sign up a few real
-   employees and submit/process some receipts so the dashboards
-   aren't empty.
-3. Power BI Desktop installed (Windows).
+`powerbi/ExpenseIQ.pbip` at the repo root is a complete, ready-to-open
+Power BI Project (the modern text-based PBIP/TMDL format, not a binary
+`.pbix`) with all 5 required pages, both semantic model tables and
+report visuals already authored, pointed at the local analytics API.
+
+1. Start the backend (`uvicorn app.main:app --reload` from `backend/`,
+   reachable at `http://127.0.0.1:8000`) with at least some expenses
+   processed so the dashboards aren't empty.
+2. In Power BI Desktop, enable the two preview features this project
+   uses (one-time, per machine): **File -> Options and settings ->
+   Options -> Preview features** -> check **Power BI Project (.pbip)
+   save option**, **Store reports using enhanced metadata format
+   (PBIR)**, and **Store semantic model using TMDL format** -> restart
+   Desktop.
+3. **File -> Open -> Browse** to `powerbi/ExpenseIQ.pbip` and open it.
+   Power BI Desktop loads the semantic model, calls the 5 analytics
+   endpoints listed below, and the 5 report pages (Overview, Spend by
+   Category, Spend by Employee, Approval Status Summary, Reimbursement
+   Liability Tracker) render with live data.
+4. If a page renders blank on first open, hit **Home -> Refresh** once
+   - Power BI Desktop sometimes needs an explicit refresh the very
+   first time a project-format model loads.
+5. Apply the color theme: **View -> Themes -> Browse for themes** ->
+   select `powerbi/ExpenseIQTheme.json` (repo root, alongside the
+   `.pbip` file). This is Power BI Desktop's own standard theme-import
+   feature - more reliable than hand-authoring the theme reference
+   into the PBIP file, which is what caused it not to apply earlier.
+
+This was hand-authored (not exported from a live Desktop session), so
+if it doesn't open cleanly, whatever error dialog Power BI Desktop
+shows names the exact file - share that message and it can be fixed
+directly, since PBIR/TMDL are both publicly documented JSON/text
+formats.
+
+Two feeds aren't in the pre-built project (spend by project, and the
+AI-accuracy/QA-evidence feed) - add them as extra pages using the
+manual steps below if you want them too.
+
+## Manual path / adding more pages
 
 ## Step 1 - Connect each feed
 

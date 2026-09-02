@@ -17,13 +17,16 @@ rate).
 
 from fastapi import APIRouter
 from fastapi import Depends
+from sqlalchemy import case
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_db
+from app.models.compliance_check import ComplianceCheck
 from app.models.employee import Employee
 from app.models.expense import Expense
 from app.models.project import Project
+from app.models.receipt import Receipt
 
 router = APIRouter(
     prefix="/analytics",
@@ -291,3 +294,108 @@ def overview(db: Session = Depends(get_db)):
         "pending_count": pending_count,
         "rejected_count": rejected_count,
     }
+
+
+@router.get(
+    "/department-status-summary",
+    summary="Department-wise Expense Status Breakdown (Approved / Pending / Rejected)",
+)
+def department_status_summary(db: Session = Depends(get_db)):
+
+    status_bucket = case(
+        (Expense.status == "Approved", "Approved"),
+        (Expense.status == "Rejected", "Rejected"),
+        else_="Pending",
+    ).label("status_bucket")
+
+    rows = (
+        db.query(
+            Employee.department.label("department"),
+            status_bucket,
+            func.count(Expense.id).label("count"),
+        )
+        .join(Employee, Expense.employee_id == Employee.id)
+        .group_by(Employee.department, status_bucket)
+        .all()
+    )
+
+    return [
+        {
+            "department": r.department,
+            "status_bucket": r.status_bucket,
+            "count": r.count,
+        }
+        for r in rows
+    ]
+
+
+@router.get(
+    "/expense-detail",
+    summary="Expense Detail Table (employee / project / category / amount / status)",
+)
+def expense_detail(db: Session = Depends(get_db)):
+
+    rows = (
+        db.query(
+            Employee.full_name.label("employee_name"),
+            Project.project_name.label("project_name"),
+            Expense.expense_category.label("expense_category"),
+            Expense.amount.label("amount"),
+            Expense.currency.label("currency"),
+            Expense.status.label("status"),
+            Expense.expense_date.label("expense_date"),
+        )
+        .join(Employee, Expense.employee_id == Employee.id)
+        .join(Project, Expense.project_id == Project.id)
+        .order_by(Expense.created_at.desc())
+        .all()
+    )
+
+    return [
+        {
+            "employee_name": r.employee_name,
+            "project_name": r.project_name,
+            "expense_category": r.expense_category,
+            "amount": float(r.amount),
+            "currency": r.currency,
+            "status": r.status,
+            "expense_date": str(r.expense_date),
+        }
+        for r in rows
+    ]
+
+
+@router.get(
+    "/receipt-ai-detail",
+    summary="Receipt AI Detail Table (receipt / merchant / amount / engine / policy / recommendation)",
+)
+def receipt_ai_detail(db: Session = Depends(get_db)):
+
+    rows = (
+        db.query(
+            Receipt.receipt_number.label("receipt_number"),
+            Expense.merchant_name.label("merchant_name"),
+            Expense.amount.label("amount"),
+            Expense.currency.label("currency"),
+            Expense.processing_engine.label("processing_engine"),
+            ComplianceCheck.policy_status.label("policy_status"),
+            Expense.ai_recommendation.label("ai_recommendation"),
+        )
+        .join(Expense, Receipt.expense_id == Expense.id)
+        .outerjoin(ComplianceCheck, ComplianceCheck.expense_id == Expense.id)
+        .order_by(Receipt.created_at.desc())
+        .all()
+    )
+
+    return [
+        {
+            "receipt_number": r.receipt_number,
+            "merchant_name": r.merchant_name,
+            "amount": float(r.amount),
+            "currency": r.currency,
+            "processing_engine": r.processing_engine,
+            "policy_status": r.policy_status,
+            "ai_recommendation": r.ai_recommendation,
+        }
+        for r in rows
+    ]

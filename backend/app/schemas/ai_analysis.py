@@ -62,6 +62,10 @@ class AIAnalysisBase(BaseModel):
 
     quality_score: float | None = None
 
+    quality_issues: str | None = None
+
+    requires_reupload: bool = False
+
     compliance_risk_score: float | None = None
 
     risk_reason: str | None = None
@@ -112,6 +116,10 @@ class AIAnalysisUpdate(BaseModel):
     duplicate_score: float | None = None
 
     quality_score: float | None = None
+
+    quality_issues: str | None = None
+
+    requires_reupload: bool | None = None
 
     compliance_risk_score: float | None = None
 

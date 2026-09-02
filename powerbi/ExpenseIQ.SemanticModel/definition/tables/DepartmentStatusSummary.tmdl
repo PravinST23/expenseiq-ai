@@ -1,0 +1,33 @@
+table DepartmentStatusSummary
+	lineageTag: b1e2c3d4-000c-4a00-8000-000000000001
+
+	column Department
+		dataType: string
+		summarizeBy: none
+		lineageTag: b1e2c3d4-000c-4a00-8000-000000000002
+		sourceColumn: Department
+
+	column StatusBucket
+		dataType: string
+		summarizeBy: none
+		lineageTag: b1e2c3d4-000c-4a00-8000-000000000003
+		sourceColumn: StatusBucket
+
+	column Count
+		dataType: int64
+		summarizeBy: sum
+		lineageTag: b1e2c3d4-000c-4a00-8000-000000000004
+		sourceColumn: Count
+
+	partition DepartmentStatusSummary = m
+		mode: import
+		source =
+				let
+				    Source = Json.Document(Web.Contents("http://127.0.0.1:8000/api/v1/analytics/department-status-summary")),
+				    #"Converted to Table" = Table.FromList(Source, Splitter.SplitByNothing(), null, null, ExtraValues.Error),
+				    #"Expanded Column1" = Table.ExpandRecordColumn(#"Converted to Table", "Column1", {"department", "status_bucket", "count"}, {"Department", "StatusBucket", "Count"}),
+				    #"Changed Type" = Table.TransformColumnTypes(#"Expanded Column1",{{"Department", type text}, {"StatusBucket", type text}, {"Count", Int64.Type}})
+				in
+				    #"Changed Type"
+
+	annotation PBI_ResultType = Table

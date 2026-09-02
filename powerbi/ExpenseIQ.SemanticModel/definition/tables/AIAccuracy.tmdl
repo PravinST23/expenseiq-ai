@@ -1,0 +1,53 @@
+table AIAccuracy
+	lineageTag: b1e2c3d4-0007-4a00-8000-000000000001
+
+	column 'Receipts Processed'
+		dataType: int64
+		lineageTag: b1e2c3d4-0007-4a00-8000-000000000002
+		summarizeBy: sum
+		sourceColumn: total_expenses
+
+	column 'Duplicate Count'
+		dataType: int64
+		lineageTag: b1e2c3d4-0007-4a00-8000-000000000003
+		summarizeBy: sum
+		sourceColumn: duplicate_count
+
+	column 'Duplicate Rate'
+		dataType: double
+		formatString: 0.00\%
+		lineageTag: b1e2c3d4-0007-4a00-8000-000000000004
+		summarizeBy: sum
+		sourceColumn: duplicate_rate
+
+	column 'Avg Fraud Risk'
+		dataType: double
+		lineageTag: b1e2c3d4-0007-4a00-8000-000000000005
+		summarizeBy: sum
+		sourceColumn: average_fraud_risk
+
+	column 'Avg Compliance Risk'
+		dataType: double
+		lineageTag: b1e2c3d4-0007-4a00-8000-000000000006
+		summarizeBy: sum
+		sourceColumn: average_compliance_risk
+
+	column 'Avg Confidence'
+		dataType: double
+		lineageTag: b1e2c3d4-0007-4a00-8000-000000000007
+		summarizeBy: sum
+		sourceColumn: average_confidence
+
+	partition AIAccuracy = m
+		mode: import
+		source =
+				let
+				    Source = Json.Document(Web.Contents("http://127.0.0.1:8000/api/v1/analytics/ai-accuracy")),
+				    #"Removed Nested" = Record.RemoveFields(Source, {"recommendation_mix", "processing_engine_mix"}),
+				    #"Converted to Table" = Record.ToTable(#"Removed Nested"),
+				    #"Pivoted Column" = Table.Pivot(#"Converted to Table", List.Distinct(#"Converted to Table"[Name]), "Name", "Value"),
+				    #"Changed Type" = Table.TransformColumnTypes(#"Pivoted Column",{{"total_expenses", Int64.Type}, {"duplicate_count", Int64.Type}, {"duplicate_rate", type number}, {"average_fraud_risk", type number}, {"average_compliance_risk", type number}, {"average_confidence", type number}})
+				in
+				    #"Changed Type"
+
+	annotation PBI_ResultType = Table

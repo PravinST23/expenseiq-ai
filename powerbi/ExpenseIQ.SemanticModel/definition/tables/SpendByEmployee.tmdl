@@ -1,0 +1,47 @@
+table SpendByEmployee
+	lineageTag: b1e2c3d4-0003-4a00-8000-000000000001
+
+	column EmployeeId
+		dataType: string
+		lineageTag: b1e2c3d4-0003-4a00-8000-000000000002
+		summarizeBy: none
+		sourceColumn: EmployeeId
+
+	column EmployeeName
+		dataType: string
+		lineageTag: b1e2c3d4-0003-4a00-8000-000000000003
+		summarizeBy: none
+		sourceColumn: EmployeeName
+
+	column Department
+		dataType: string
+		lineageTag: b1e2c3d4-0003-4a00-8000-000000000004
+		summarizeBy: none
+		sourceColumn: Department
+
+	column TotalAmount
+		dataType: double
+		formatString: "₹"\ #,0.00
+		lineageTag: b1e2c3d4-0003-4a00-8000-000000000005
+		summarizeBy: sum
+		sourceColumn: TotalAmount
+
+	column Count
+		dataType: int64
+		lineageTag: b1e2c3d4-0003-4a00-8000-000000000006
+		summarizeBy: sum
+		sourceColumn: Count
+
+	partition SpendByEmployee = m
+		mode: import
+		source =
+				let
+				    Source = Json.Document(Web.Contents("http://127.0.0.1:8000/api/v1/analytics/spend-by-employee")),
+				    #"Converted to Table" = Table.FromList(Source, Splitter.SplitByNothing(), null, null, ExtraValues.Error),
+				    #"Expanded Column1" = Table.ExpandRecordColumn(#"Converted to Table", "Column1", {"employee_id", "employee_name", "department", "total_amount", "count"}, {"EmployeeId", "EmployeeName", "Department", "TotalAmount", "Count"}),
+				    #"Changed Type" = Table.TransformColumnTypes(#"Expanded Column1",{{"EmployeeId", type text}, {"EmployeeName", type text}, {"Department", type text}, {"TotalAmount", type number}, {"Count", Int64.Type}})
+				in
+				    #"Changed Type"
+
+	annotation PBI_ResultType = Table
+

@@ -124,3 +124,28 @@ class Receipt(BaseModel):
         "Expense",
         back_populates="receipts",
     )
+
+    # ---------------------------------------------------------
+    # Denormalized quality-validator fields (from the latest
+    # AIAnalysis row) - for the frontend to show a "this photo is
+    # blurry, consider re-uploading" prompt without a second call.
+    # ---------------------------------------------------------
+
+    @property
+    def _latest_analysis(self):
+        return self.ai_reviews[-1] if self.ai_reviews else None
+
+    @property
+    def quality_score(self) -> float | None:
+        analysis = self._latest_analysis
+        return float(analysis.quality_score) if analysis and analysis.quality_score is not None else None
+
+    @property
+    def quality_issues(self) -> str | None:
+        analysis = self._latest_analysis
+        return analysis.quality_issues if analysis else None
+
+    @property
+    def requires_reupload(self) -> bool:
+        analysis = self._latest_analysis
+        return bool(analysis.requires_reupload) if analysis else False

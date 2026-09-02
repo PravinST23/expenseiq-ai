@@ -202,7 +202,13 @@ receipt fields (`merchant_name`, `expense_date`, `expense_category`,
 `extracted_json`, `policy_status`, `policy_reason`,
 `requires_manager_approval`, `approval_recommendation`, `ai_provider`,
 `ocr_provider`, `policy_provider`, `pipeline_version`,
-`confidence_score`, `fraud_score`, `duplicate_score`, `quality_score`,
+`confidence_score`, `fraud_score`, `duplicate_score`, `quality_score`
+(0-100 composite from the AI Receipt Quality Validator - blur, low
+light, and crop/framing heuristics, run before any OCR/AI call; see
+`app.ai.quality_validator`), `quality_issues` (comma-separated:
+`blurry`, `low_light`, `poorly_cropped`), `requires_reupload`
+(advisory - the pipeline still runs regardless, the employee decides
+whether to re-upload),
 `compliance_risk_score`, `risk_reason`, `required_approval_level`,
 `processed_at`
 

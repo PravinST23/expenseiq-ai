@@ -1,0 +1,53 @@
+table Overview
+	lineageTag: b1e2c3d4-0001-4a00-8000-000000000001
+
+	column 'Total Employees'
+		dataType: int64
+		lineageTag: b1e2c3d4-0001-4a00-8000-000000000002
+		summarizeBy: sum
+		sourceColumn: total_employees
+
+	column 'Total Expenses'
+		dataType: int64
+		lineageTag: b1e2c3d4-0001-4a00-8000-000000000003
+		summarizeBy: sum
+		sourceColumn: total_expenses
+
+	column 'Total Amount'
+		dataType: double
+		formatString: "₹"\ #,0.00
+		lineageTag: b1e2c3d4-0001-4a00-8000-000000000004
+		summarizeBy: sum
+		sourceColumn: total_amount
+
+	column 'Approved Amount'
+		dataType: double
+		formatString: "₹"\ #,0.00
+		lineageTag: b1e2c3d4-0001-4a00-8000-000000000005
+		summarizeBy: sum
+		sourceColumn: approved_amount
+
+	column 'Pending Approval'
+		dataType: int64
+		lineageTag: b1e2c3d4-0001-4a00-8000-000000000006
+		summarizeBy: sum
+		sourceColumn: pending_count
+
+	column 'Rejected Expenses'
+		dataType: int64
+		lineageTag: b1e2c3d4-0001-4a00-8000-000000000007
+		summarizeBy: sum
+		sourceColumn: rejected_count
+
+	partition Overview = m
+		mode: import
+		source =
+				let
+				    Source = Json.Document(Web.Contents("http://127.0.0.1:8000/api/v1/analytics/overview")),
+				    #"Converted to Table" = Record.ToTable(Source),
+				    #"Pivoted Column" = Table.Pivot(#"Converted to Table", List.Distinct(#"Converted to Table"[Name]), "Name", "Value"),
+				    #"Changed Type" = Table.TransformColumnTypes(#"Pivoted Column",{{"total_employees", Int64.Type}, {"total_expenses", Int64.Type}, {"total_amount", type number}, {"approved_amount", type number}, {"pending_count", Int64.Type}, {"rejected_count", Int64.Type}})
+				in
+				    #"Changed Type"
+
+	annotation PBI_ResultType = Table

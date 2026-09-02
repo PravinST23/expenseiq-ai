@@ -1,0 +1,85 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.7.0/schema.json",
+  "name": "vwProjectChart",
+  "position": {
+    "x": 650,
+    "y": 90,
+    "z": 1,
+    "height": 330,
+    "width": 610,
+    "tabOrder": 2
+  },
+  "visual": {
+    "visualType": "columnChart",
+    "query": {
+      "queryState": {
+        "Category": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "SpendByProject"
+                    }
+                  },
+                  "Property": "ProjectName"
+                }
+              },
+              "queryRef": "SpendByProject.ProjectName",
+              "nativeQueryRef": "ProjectName",
+              "active": true
+            }
+          ]
+        },
+        "Y": {
+          "projections": [
+            {
+              "field": {
+                "Aggregation": {
+                  "Expression": {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "SpendByProject"
+                        }
+                      },
+                      "Property": "TotalAmount"
+                    }
+                  },
+                  "Function": 0
+                }
+              },
+              "queryRef": "Sum(SpendByProject.TotalAmount)",
+              "nativeQueryRef": "TotalAmount"
+            }
+          ]
+        }
+      },
+      "sortDefinition": {
+        "sort": [
+          {
+            "field": {
+              "Aggregation": {
+                "Expression": {
+                  "Column": {
+                    "Expression": {
+                      "SourceRef": {
+                        "Entity": "SpendByProject"
+                      }
+                    },
+                    "Property": "TotalAmount"
+                  }
+                },
+                "Function": 0
+              }
+            },
+            "direction": "Descending"
+          }
+        ],
+        "isDefaultSort": true
+      }
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

@@ -1,0 +1,43 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.7.0/schema.json",
+  "name": "vwRejectedCount",
+  "position": {
+    "x": 1060,
+    "y": 90,
+    "z": 1,
+    "height": 140,
+    "width": 195,
+    "tabOrder": 6
+  },
+  "visual": {
+    "visualType": "cardVisual",
+    "query": {
+      "queryState": {
+        "Data": {
+          "projections": [
+            {
+              "field": {
+                "Aggregation": {
+                  "Expression": {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "Overview"
+                        }
+                      },
+                      "Property": "Rejected Expenses"
+                    }
+                  },
+                  "Function": 0
+                }
+              },
+              "queryRef": "Sum(Overview.Rejected Expenses)",
+              "nativeQueryRef": "Rejected Expenses"
+            }
+          ]
+        }
+      }
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

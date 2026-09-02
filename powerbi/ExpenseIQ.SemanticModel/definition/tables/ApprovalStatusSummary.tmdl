@@ -1,0 +1,28 @@
+table ApprovalStatusSummary
+	lineageTag: b1e2c3d4-0004-4a00-8000-000000000001
+
+	column Status
+		dataType: string
+		lineageTag: b1e2c3d4-0004-4a00-8000-000000000002
+		summarizeBy: none
+		sourceColumn: Status
+
+	column Count
+		dataType: int64
+		lineageTag: b1e2c3d4-0004-4a00-8000-000000000003
+		summarizeBy: sum
+		sourceColumn: Count
+
+	partition ApprovalStatusSummary = m
+		mode: import
+		source =
+				let
+				    Source = Json.Document(Web.Contents("http://127.0.0.1:8000/api/v1/analytics/approval-status-summary")),
+				    #"Converted to Table" = Table.FromList(Source, Splitter.SplitByNothing(), null, null, ExtraValues.Error),
+				    #"Expanded Column1" = Table.ExpandRecordColumn(#"Converted to Table", "Column1", {"status", "count"}, {"Status", "Count"}),
+				    #"Changed Type" = Table.TransformColumnTypes(#"Expanded Column1",{{"Status", type text}, {"Count", Int64.Type}})
+				in
+				    #"Changed Type"
+
+	annotation PBI_ResultType = Table
+

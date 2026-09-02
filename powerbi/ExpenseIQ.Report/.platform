@@ -1,0 +1,11 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/gitIntegration/platformProperties/2.0.0/schema.json",
+  "metadata": {
+    "type": "Report",
+    "displayName": "ExpenseIQ Analytics"
+  },
+  "config": {
+    "version": "2.0",
+    "logicalId": "02dfb809-a481-4031-a57e-899cdb1239c8"
+  }
+}

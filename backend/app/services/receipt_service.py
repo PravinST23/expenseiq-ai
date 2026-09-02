@@ -218,7 +218,18 @@ class ReceiptService:
                     "duplicate_confidence",
                 ),
 
-                quality_score=None,
+                quality_score=result.get(
+                    "quality_score",
+                ),
+
+                quality_issues=result.get(
+                    "quality_issues",
+                ),
+
+                requires_reupload=result.get(
+                    "requires_reupload",
+                    False,
+                ),
 
                 compliance_risk_score=result.get(
                     "compliance_risk",

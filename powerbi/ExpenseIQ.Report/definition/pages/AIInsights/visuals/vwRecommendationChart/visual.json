@@ -1,0 +1,85 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.7.0/schema.json",
+  "name": "vwRecommendationChart",
+  "position": {
+    "x": 20,
+    "y": 250,
+    "z": 1,
+    "height": 340,
+    "width": 610,
+    "tabOrder": 5
+  },
+  "visual": {
+    "visualType": "barChart",
+    "query": {
+      "queryState": {
+        "Category": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "RecommendationMix"
+                    }
+                  },
+                  "Property": "Recommendation"
+                }
+              },
+              "queryRef": "RecommendationMix.Recommendation",
+              "nativeQueryRef": "Recommendation",
+              "active": true
+            }
+          ]
+        },
+        "Y": {
+          "projections": [
+            {
+              "field": {
+                "Aggregation": {
+                  "Expression": {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "RecommendationMix"
+                        }
+                      },
+                      "Property": "Count"
+                    }
+                  },
+                  "Function": 0
+                }
+              },
+              "queryRef": "Sum(RecommendationMix.Count)",
+              "nativeQueryRef": "Count"
+            }
+          ]
+        }
+      },
+      "sortDefinition": {
+        "sort": [
+          {
+            "field": {
+              "Aggregation": {
+                "Expression": {
+                  "Column": {
+                    "Expression": {
+                      "SourceRef": {
+                        "Entity": "RecommendationMix"
+                      }
+                    },
+                    "Property": "Count"
+                  }
+                },
+                "Function": 0
+              }
+            },
+            "direction": "Descending"
+          }
+        ],
+        "isDefaultSort": true
+      }
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

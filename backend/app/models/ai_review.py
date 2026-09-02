@@ -177,6 +177,17 @@ class AIAnalysis(BaseModel):
         nullable=True,
     )
 
+    quality_issues: Mapped[str | None] = mapped_column(
+        String(255),
+        nullable=True,
+    )
+
+    requires_reupload: Mapped[bool] = mapped_column(
+        Boolean,
+        default=False,
+        nullable=False,
+    )
+
     compliance_risk_score: Mapped[float | None] = mapped_column(
         Numeric(5, 2),
         nullable=True,

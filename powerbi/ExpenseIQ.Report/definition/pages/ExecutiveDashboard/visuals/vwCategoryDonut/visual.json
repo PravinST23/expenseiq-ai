@@ -1,0 +1,62 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.7.0/schema.json",
+  "name": "vwCategoryDonut",
+  "position": {
+    "x": 20,
+    "y": 250,
+    "z": 1,
+    "height": 340,
+    "width": 610,
+    "tabOrder": 7
+  },
+  "visual": {
+    "visualType": "donutChart",
+    "query": {
+      "queryState": {
+        "Category": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "SpendByCategory"
+                    }
+                  },
+                  "Property": "Category"
+                }
+              },
+              "queryRef": "SpendByCategory.Category",
+              "nativeQueryRef": "Category",
+              "active": true
+            }
+          ]
+        },
+        "Y": {
+          "projections": [
+            {
+              "field": {
+                "Aggregation": {
+                  "Expression": {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "SpendByCategory"
+                        }
+                      },
+                      "Property": "TotalAmount"
+                    }
+                  },
+                  "Function": 0
+                }
+              },
+              "queryRef": "Sum(SpendByCategory.TotalAmount)",
+              "nativeQueryRef": "TotalAmount"
+            }
+          ]
+        }
+      }
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

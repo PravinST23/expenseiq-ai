@@ -1,0 +1,29 @@
+table ProcessingEngineMix
+	lineageTag: b1e2c3d4-0009-4a00-8000-000000000001
+
+	column Engine
+		dataType: string
+		lineageTag: b1e2c3d4-0009-4a00-8000-000000000002
+		summarizeBy: none
+		sourceColumn: Engine
+
+	column Count
+		dataType: int64
+		lineageTag: b1e2c3d4-0009-4a00-8000-000000000003
+		summarizeBy: sum
+		sourceColumn: Count
+
+	partition ProcessingEngineMix = m
+		mode: import
+		source =
+				let
+				    Source = Json.Document(Web.Contents("http://127.0.0.1:8000/api/v1/analytics/ai-accuracy")),
+				    ProcessingEngineMix = Source[processing_engine_mix],
+				    #"Converted to Table" = Table.FromList(ProcessingEngineMix, Splitter.SplitByNothing(), null, null, ExtraValues.Error),
+				    #"Expanded Column1" = Table.ExpandRecordColumn(#"Converted to Table", "Column1", {"engine", "count"}, {"Engine", "Count"}),
+				    #"Changed Type" = Table.TransformColumnTypes(#"Expanded Column1",{{"Engine", type text}, {"Count", Int64.Type}})
+				in
+				    #"Changed Type"
+
+	annotation PBI_ResultType = Table
+

@@ -1,0 +1,94 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.7.0/schema.json",
+  "name": "vwExpenseTable",
+  "position": {
+    "x": 20,
+    "y": 610,
+    "z": 1,
+    "height": 160,
+    "width": 1240,
+    "tabOrder": 9
+  },
+  "visual": {
+    "visualType": "tableEx",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "ExpenseDetail"
+                    }
+                  },
+                  "Property": "EmployeeName"
+                }
+              },
+              "queryRef": "ExpenseDetail.EmployeeName",
+              "nativeQueryRef": "EmployeeName"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "ExpenseDetail"
+                    }
+                  },
+                  "Property": "ProjectName"
+                }
+              },
+              "queryRef": "ExpenseDetail.ProjectName",
+              "nativeQueryRef": "ProjectName"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "ExpenseDetail"
+                    }
+                  },
+                  "Property": "ExpenseCategory"
+                }
+              },
+              "queryRef": "ExpenseDetail.ExpenseCategory",
+              "nativeQueryRef": "ExpenseCategory"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "ExpenseDetail"
+                    }
+                  },
+                  "Property": "Amount"
+                }
+              },
+              "queryRef": "ExpenseDetail.Amount",
+              "nativeQueryRef": "Amount"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "ExpenseDetail"
+                    }
+                  },
+                  "Property": "Status"
+                }
+              },
+              "queryRef": "ExpenseDetail.Status",
+              "nativeQueryRef": "Status"
+            }
+          ]
+        }
+      }
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

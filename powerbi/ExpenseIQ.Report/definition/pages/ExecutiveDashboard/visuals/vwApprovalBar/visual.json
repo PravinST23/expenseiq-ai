@@ -1,0 +1,82 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.7.0/schema.json",
+  "name": "vwApprovalBar",
+  "position": {
+    "x": 650,
+    "y": 250,
+    "z": 1,
+    "height": 340,
+    "width": 610,
+    "tabOrder": 8
+  },
+  "visual": {
+    "visualType": "barChart",
+    "query": {
+      "queryState": {
+        "Category": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": { "SourceRef": { "Entity": "DepartmentStatusSummary" } },
+                  "Property": "Department"
+                }
+              },
+              "queryRef": "DepartmentStatusSummary.Department",
+              "nativeQueryRef": "Department",
+              "active": true
+            }
+          ]
+        },
+        "Series": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": { "SourceRef": { "Entity": "DepartmentStatusSummary" } },
+                  "Property": "StatusBucket"
+                }
+              },
+              "queryRef": "DepartmentStatusSummary.StatusBucket",
+              "nativeQueryRef": "StatusBucket"
+            }
+          ]
+        },
+        "Y": {
+          "projections": [
+            {
+              "field": {
+                "Aggregation": {
+                  "Expression": {
+                    "Column": {
+                      "Expression": { "SourceRef": { "Entity": "DepartmentStatusSummary" } },
+                      "Property": "Count"
+                    }
+                  },
+                  "Function": 0
+                }
+              },
+              "queryRef": "Sum(DepartmentStatusSummary.Count)",
+              "nativeQueryRef": "Count"
+            }
+          ]
+        }
+      },
+      "sortDefinition": {
+        "sort": [
+          {
+            "field": {
+              "Column": {
+                "Expression": { "SourceRef": { "Entity": "DepartmentStatusSummary" } },
+                "Property": "Department"
+              }
+            },
+            "direction": "Ascending"
+          }
+        ],
+        "isDefaultSort": true
+      }
+    },
+    "drillFilterOtherVisuals": true
+  }
+}
