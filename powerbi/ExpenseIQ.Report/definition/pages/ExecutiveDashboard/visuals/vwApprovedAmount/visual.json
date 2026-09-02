@@ -17,22 +17,17 @@
           "projections": [
             {
               "field": {
-                "Aggregation": {
+                "Measure": {
                   "Expression": {
-                    "Column": {
-                      "Expression": {
-                        "SourceRef": {
-                          "Entity": "Overview"
-                        }
-                      },
-                      "Property": "Approved Amount"
+                    "SourceRef": {
+                      "Entity": "Overview"
                     }
                   },
-                  "Function": 0
+                  "Property": "Approved Spend"
                 }
               },
-              "queryRef": "Sum(Overview.Approved Amount)",
-              "nativeQueryRef": "Approved Amount"
+              "queryRef": "Overview.Approved Spend",
+              "nativeQueryRef": "Approved Spend"
             }
           ]
         }

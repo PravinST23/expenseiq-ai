@@ -17,50 +17,22 @@
           "projections": [
             {
               "field": {
-                "Aggregation": {
+                "Measure": {
                   "Expression": {
-                    "Column": {
-                      "Expression": {
-                        "SourceRef": {
-                          "Entity": "Overview"
-                        }
-                      },
-                      "Property": "Total Amount"
+                    "SourceRef": {
+                      "Entity": "Overview"
                     }
                   },
-                  "Function": 0
+                  "Property": "Total Spend"
                 }
               },
-              "queryRef": "Sum(Overview.Total Amount)",
-              "nativeQueryRef": "Total Amount"
+              "queryRef": "Overview.Total Spend",
+              "nativeQueryRef": "Total Spend"
             }
           ]
         }
       }
     },
     "drillFilterOtherVisuals": true
-  },
-  "filterConfig": {
-    "filters": [
-      {
-        "name": "74563d74e56363afcae8",
-        "field": {
-          "Aggregation": {
-            "Expression": {
-              "Column": {
-                "Expression": {
-                  "SourceRef": {
-                    "Entity": "Overview"
-                  }
-                },
-                "Property": "total_amount"
-              }
-            },
-            "Function": 0
-          }
-        },
-        "type": "Advanced"
-      }
-    ]
   }
 }

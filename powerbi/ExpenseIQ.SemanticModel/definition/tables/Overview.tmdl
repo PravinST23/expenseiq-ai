@@ -1,6 +1,14 @@
 table Overview
 	lineageTag: b1e2c3d4-0001-4a00-8000-000000000001
 
+	measure 'Total Spend' = SUM(Overview[Total Amount])
+		formatString: "₹"\ #,0.00
+		lineageTag: b1e2c3d4-0001-4a00-8000-000000000008
+
+	measure 'Approved Spend' = SUM(Overview[Approved Amount])
+		formatString: "₹"\ #,0.00
+		lineageTag: b1e2c3d4-0001-4a00-8000-000000000009
+
 	column 'Total Employees'
 		dataType: int64
 		lineageTag: b1e2c3d4-0001-4a00-8000-000000000002
