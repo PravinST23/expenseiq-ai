@@ -1,12 +1,12 @@
 {
-  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.7.0/schema.json",
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.5.0/schema.json",
   "name": "vwApprovalBar",
   "position": {
-    "x": 650,
-    "y": 250,
+    "x": 0,
+    "y": 523.46859212438585,
     "z": 1,
-    "height": 340,
-    "width": 610,
+    "height": 266.45874183948882,
+    "width": 695.43841841795665,
     "tabOrder": 8
   },
   "visual": {
@@ -18,7 +18,11 @@
             {
               "field": {
                 "Column": {
-                  "Expression": { "SourceRef": { "Entity": "DepartmentStatusSummary" } },
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "DepartmentStatusSummary"
+                    }
+                  },
                   "Property": "Department"
                 }
               },
@@ -33,7 +37,11 @@
             {
               "field": {
                 "Column": {
-                  "Expression": { "SourceRef": { "Entity": "DepartmentStatusSummary" } },
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "DepartmentStatusSummary"
+                    }
+                  },
                   "Property": "StatusBucket"
                 }
               },
@@ -49,7 +57,11 @@
                 "Aggregation": {
                   "Expression": {
                     "Column": {
-                      "Expression": { "SourceRef": { "Entity": "DepartmentStatusSummary" } },
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "DepartmentStatusSummary"
+                        }
+                      },
                       "Property": "Count"
                     }
                   },
@@ -67,7 +79,11 @@
           {
             "field": {
               "Column": {
-                "Expression": { "SourceRef": { "Entity": "DepartmentStatusSummary" } },
+                "Expression": {
+                  "SourceRef": {
+                    "Entity": "DepartmentStatusSummary"
+                  }
+                },
                 "Property": "Department"
               }
             },
@@ -78,5 +94,56 @@
       }
     },
     "drillFilterOtherVisuals": true
+  },
+  "filterConfig": {
+    "filters": [
+      {
+        "name": "35cf95ea3710c98ab0cf",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "DepartmentStatusSummary"
+              }
+            },
+            "Property": "Department"
+          }
+        },
+        "type": "Categorical"
+      },
+      {
+        "name": "4c25ec0a5973f5bd9dfe",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "DepartmentStatusSummary"
+              }
+            },
+            "Property": "StatusBucket"
+          }
+        },
+        "type": "Categorical"
+      },
+      {
+        "name": "34064fe79be5f23c886f",
+        "field": {
+          "Aggregation": {
+            "Expression": {
+              "Column": {
+                "Expression": {
+                  "SourceRef": {
+                    "Entity": "DepartmentStatusSummary"
+                  }
+                },
+                "Property": "Count"
+              }
+            },
+            "Function": 0
+          }
+        },
+        "type": "Advanced"
+      }
+    ]
   }
 }

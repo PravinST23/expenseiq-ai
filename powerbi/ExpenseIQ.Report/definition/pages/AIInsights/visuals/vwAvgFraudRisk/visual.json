@@ -1,12 +1,12 @@
 {
-  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.7.0/schema.json",
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.5.0/schema.json",
   "name": "vwAvgFraudRisk",
   "position": {
-    "x": 640,
-    "y": 90,
+    "x": 640.63484740132424,
+    "y": 100.1582504786731,
     "z": 1,
-    "height": 140,
-    "width": 295,
+    "height": 100.1582504786731,
+    "width": 294.80541650326421,
     "tabOrder": 3
   },
   "visual": {
@@ -39,5 +39,28 @@
       }
     },
     "drillFilterOtherVisuals": true
+  },
+  "filterConfig": {
+    "filters": [
+      {
+        "name": "539d4a28d7ba301121b7",
+        "field": {
+          "Aggregation": {
+            "Expression": {
+              "Column": {
+                "Expression": {
+                  "SourceRef": {
+                    "Entity": "AIAccuracy"
+                  }
+                },
+                "Property": "Avg Fraud Risk"
+              }
+            },
+            "Function": 0
+          }
+        },
+        "type": "Advanced"
+      }
+    ]
   }
 }

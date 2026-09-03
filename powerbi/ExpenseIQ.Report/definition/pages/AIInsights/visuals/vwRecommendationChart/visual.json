@@ -1,12 +1,12 @@
 {
-  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.7.0/schema.json",
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.5.0/schema.json",
   "name": "vwRecommendationChart",
   "position": {
-    "x": 20,
-    "y": 250,
+    "x": 640.63484740132424,
+    "y": 236.22228886479505,
     "z": 1,
-    "height": 340,
-    "width": 610,
+    "height": 277.797411704999,
+    "width": 623.62684260305889,
     "tabOrder": 5
   },
   "visual": {
@@ -81,5 +81,42 @@
       }
     },
     "drillFilterOtherVisuals": true
+  },
+  "filterConfig": {
+    "filters": [
+      {
+        "name": "ab3813b942c4768bdb5f",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "RecommendationMix"
+              }
+            },
+            "Property": "Recommendation"
+          }
+        },
+        "type": "Categorical"
+      },
+      {
+        "name": "86294d828037016ff755",
+        "field": {
+          "Aggregation": {
+            "Expression": {
+              "Column": {
+                "Expression": {
+                  "SourceRef": {
+                    "Entity": "RecommendationMix"
+                  }
+                },
+                "Property": "Count"
+              }
+            },
+            "Function": 0
+          }
+        },
+        "type": "Advanced"
+      }
+    ]
   }
 }

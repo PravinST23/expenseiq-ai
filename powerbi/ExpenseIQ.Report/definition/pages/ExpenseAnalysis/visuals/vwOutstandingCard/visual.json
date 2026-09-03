@@ -1,12 +1,12 @@
 {
-  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.7.0/schema.json",
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.5.0/schema.json",
   "name": "vwOutstandingCard",
   "position": {
-    "x": 940,
-    "y": 440,
+    "x": 98.268472167754737,
+    "y": 111.49692034418327,
     "z": 1,
-    "height": 160,
-    "width": 320,
+    "height": 126.61514683153015,
+    "width": 321.2623128561213,
     "tabOrder": 4
   },
   "visual": {
@@ -34,5 +34,23 @@
       }
     },
     "drillFilterOtherVisuals": true
+  },
+  "filterConfig": {
+    "filters": [
+      {
+        "name": "1ba70031707f87a15515",
+        "field": {
+          "Measure": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "ReimbursementLiability"
+              }
+            },
+            "Property": "Outstanding Liability"
+          }
+        },
+        "type": "Advanced"
+      }
+    ]
   }
 }

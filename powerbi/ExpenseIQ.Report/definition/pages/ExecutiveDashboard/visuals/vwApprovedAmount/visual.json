@@ -1,12 +1,12 @@
 {
-  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.7.0/schema.json",
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.5.0/schema.json",
   "name": "vwApprovedAmount",
   "position": {
-    "x": 644,
-    "y": 90,
+    "x": 612.28817273754873,
+    "y": 109.60714203326491,
     "z": 1,
-    "height": 140,
-    "width": 195,
+    "height": 102.04802878959147,
+    "width": 287.24630325959077,
     "tabOrder": 4
   },
   "visual": {
@@ -34,5 +34,23 @@
       }
     },
     "drillFilterOtherVisuals": true
+  },
+  "filterConfig": {
+    "filters": [
+      {
+        "name": "5e9f331b698c588ee242",
+        "field": {
+          "Measure": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Overview"
+              }
+            },
+            "Property": "Approved Spend"
+          }
+        },
+        "type": "Advanced"
+      }
+    ]
   }
 }

@@ -3,20 +3,20 @@ table DepartmentStatusSummary
 
 	column Department
 		dataType: string
-		summarizeBy: none
 		lineageTag: b1e2c3d4-000c-4a00-8000-000000000002
+		summarizeBy: none
 		sourceColumn: Department
 
 	column StatusBucket
 		dataType: string
-		summarizeBy: none
 		lineageTag: b1e2c3d4-000c-4a00-8000-000000000003
+		summarizeBy: none
 		sourceColumn: StatusBucket
 
 	column Count
 		dataType: int64
-		summarizeBy: sum
 		lineageTag: b1e2c3d4-000c-4a00-8000-000000000004
+		summarizeBy: sum
 		sourceColumn: Count
 
 	partition DepartmentStatusSummary = m
@@ -30,4 +30,7 @@ table DepartmentStatusSummary
 				in
 				    #"Changed Type"
 
-	annotation PBI_ResultType = Table
+	annotation PBI_ResultType = Exception
+
+	annotation PBI_NavigationStepName = Navigation
+

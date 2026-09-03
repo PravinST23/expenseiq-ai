@@ -1,12 +1,12 @@
 {
-  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.7.0/schema.json",
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.5.0/schema.json",
   "name": "vwTotalExpenses",
   "position": {
-    "x": 228,
-    "y": 90,
+    "x": 153.07204318438718,
+    "y": 109.60714203326491,
     "z": 1,
-    "height": 140,
-    "width": 195,
+    "height": 102.04802878959147,
+    "width": 143.62315162979539,
     "tabOrder": 2
   },
   "visual": {
@@ -39,5 +39,28 @@
       }
     },
     "drillFilterOtherVisuals": true
+  },
+  "filterConfig": {
+    "filters": [
+      {
+        "name": "19443d523720e427f200",
+        "field": {
+          "Aggregation": {
+            "Expression": {
+              "Column": {
+                "Expression": {
+                  "SourceRef": {
+                    "Entity": "Overview"
+                  }
+                },
+                "Property": "Total Expenses"
+              }
+            },
+            "Function": 0
+          }
+        },
+        "type": "Advanced"
+      }
+    ]
   }
 }

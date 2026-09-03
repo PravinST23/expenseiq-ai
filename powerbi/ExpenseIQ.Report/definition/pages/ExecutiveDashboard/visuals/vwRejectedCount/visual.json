@@ -1,12 +1,12 @@
 {
-  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.7.0/schema.json",
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.5.0/schema.json",
   "name": "vwRejectedCount",
   "position": {
-    "x": 1060,
-    "y": 90,
+    "x": 1063.9451890470368,
+    "y": 109.60714203326491,
     "z": 1,
-    "height": 140,
-    "width": 195,
+    "height": 102.04802878959147,
+    "width": 166.30049136081573,
     "tabOrder": 6
   },
   "visual": {
@@ -39,5 +39,28 @@
       }
     },
     "drillFilterOtherVisuals": true
+  },
+  "filterConfig": {
+    "filters": [
+      {
+        "name": "619d84c0bc27680bc5fe",
+        "field": {
+          "Aggregation": {
+            "Expression": {
+              "Column": {
+                "Expression": {
+                  "SourceRef": {
+                    "Entity": "Overview"
+                  }
+                },
+                "Property": "Rejected Expenses"
+              }
+            },
+            "Function": 0
+          }
+        },
+        "type": "Advanced"
+      }
+    ]
   }
 }

@@ -1,12 +1,12 @@
 {
-  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.7.0/schema.json",
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.5.0/schema.json",
   "name": "vwEngineChart",
   "position": {
-    "x": 650,
-    "y": 250,
+    "x": 625.51662091397736,
+    "y": 561.264158342753,
     "z": 1,
-    "height": 340,
-    "width": 610,
+    "height": 228.66317562112161,
+    "width": 653.86329557775275,
     "tabOrder": 6
   },
   "visual": {
@@ -81,5 +81,42 @@
       }
     },
     "drillFilterOtherVisuals": true
+  },
+  "filterConfig": {
+    "filters": [
+      {
+        "name": "00119141a04104ffb9ad",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "ProcessingEngineMix"
+              }
+            },
+            "Property": "Engine"
+          }
+        },
+        "type": "Categorical"
+      },
+      {
+        "name": "8ad591a0f8d8f7f320f8",
+        "field": {
+          "Aggregation": {
+            "Expression": {
+              "Column": {
+                "Expression": {
+                  "SourceRef": {
+                    "Entity": "ProcessingEngineMix"
+                  }
+                },
+                "Property": "Count"
+              }
+            },
+            "Function": 0
+          }
+        },
+        "type": "Advanced"
+      }
+    ]
   }
 }

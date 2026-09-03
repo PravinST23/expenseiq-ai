@@ -1,12 +1,12 @@
 {
-  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.7.0/schema.json",
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.5.0/schema.json",
   "name": "vwCategoryDonut",
   "position": {
-    "x": 20,
-    "y": 250,
+    "x": 47.244457772959009,
+    "y": 247.56095873030523,
     "z": 1,
-    "height": 340,
-    "width": 610,
+    "height": 275.90763339408062,
+    "width": 648.19396064499767,
     "tabOrder": 7
   },
   "visual": {
@@ -58,5 +58,42 @@
       }
     },
     "drillFilterOtherVisuals": true
+  },
+  "filterConfig": {
+    "filters": [
+      {
+        "name": "e62e2e853860ad0f4ddf",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "SpendByCategory"
+              }
+            },
+            "Property": "Category"
+          }
+        },
+        "type": "Categorical"
+      },
+      {
+        "name": "38c15c0b29b3d77d5e1a",
+        "field": {
+          "Aggregation": {
+            "Expression": {
+              "Column": {
+                "Expression": {
+                  "SourceRef": {
+                    "Entity": "SpendByCategory"
+                  }
+                },
+                "Property": "TotalAmount"
+              }
+            },
+            "Function": 0
+          }
+        },
+        "type": "Advanced"
+      }
+    ]
   }
 }

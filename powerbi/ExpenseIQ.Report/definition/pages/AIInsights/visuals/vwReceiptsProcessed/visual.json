@@ -1,12 +1,12 @@
 {
-  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.7.0/schema.json",
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.5.0/schema.json",
   "name": "vwReceiptsProcessed",
   "position": {
-    "x": 20,
-    "y": 90,
+    "x": 18.897783109183603,
+    "y": 100.1582504786731,
     "z": 1,
-    "height": 140,
-    "width": 295,
+    "height": 100.1582504786731,
+    "width": 294.80541650326421,
     "tabOrder": 1
   },
   "visual": {
@@ -39,5 +39,28 @@
       }
     },
     "drillFilterOtherVisuals": true
+  },
+  "filterConfig": {
+    "filters": [
+      {
+        "name": "460e0786190b78a4109d",
+        "field": {
+          "Aggregation": {
+            "Expression": {
+              "Column": {
+                "Expression": {
+                  "SourceRef": {
+                    "Entity": "AIAccuracy"
+                  }
+                },
+                "Property": "Receipts Processed"
+              }
+            },
+            "Function": 0
+          }
+        },
+        "type": "Advanced"
+      }
+    ]
   }
 }

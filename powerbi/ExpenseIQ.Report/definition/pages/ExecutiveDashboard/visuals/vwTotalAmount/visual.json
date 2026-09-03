@@ -2,11 +2,11 @@
   "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.5.0/schema.json",
   "name": "vwTotalAmount",
   "position": {
-    "x": 436,
-    "y": 90,
+    "x": 296.69519481418257,
+    "y": 109.60714203326491,
     "z": 1,
-    "height": 140,
-    "width": 195,
+    "height": 102.04802878959147,
+    "width": 315.59297792336622,
     "tabOrder": 3
   },
   "visual": {
@@ -34,5 +34,23 @@
       }
     },
     "drillFilterOtherVisuals": true
+  },
+  "filterConfig": {
+    "filters": [
+      {
+        "name": "ab66cf8c2623a40f3823",
+        "field": {
+          "Measure": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Overview"
+              }
+            },
+            "Property": "Total Spend"
+          }
+        },
+        "type": "Advanced"
+      }
+    ]
   }
 }

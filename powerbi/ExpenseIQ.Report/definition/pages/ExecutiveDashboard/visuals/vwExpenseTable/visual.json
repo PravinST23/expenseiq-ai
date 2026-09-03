@@ -1,12 +1,12 @@
 {
-  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.7.0/schema.json",
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.5.0/schema.json",
   "name": "vwExpenseTable",
   "position": {
-    "x": 20,
-    "y": 610,
+    "x": 742.68287619091564,
+    "y": 253.23029366306031,
     "z": 1,
-    "height": 160,
-    "width": 1240,
+    "height": 515.90947888071241,
+    "width": 517.79925719163077,
     "tabOrder": 9
   },
   "visual": {
@@ -87,8 +87,99 @@
             }
           ]
         }
+      },
+      "sortDefinition": {
+        "sort": [
+          {
+            "field": {
+              "Column": {
+                "Expression": {
+                  "SourceRef": {
+                    "Entity": "ExpenseDetail"
+                  }
+                },
+                "Property": "Status"
+              }
+            },
+            "direction": "Ascending"
+          }
+        ]
       }
     },
     "drillFilterOtherVisuals": true
+  },
+  "filterConfig": {
+    "filters": [
+      {
+        "name": "823ae25d29f6eaa03905",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "ExpenseDetail"
+              }
+            },
+            "Property": "EmployeeName"
+          }
+        },
+        "type": "Categorical"
+      },
+      {
+        "name": "bd4781938c3d837a9038",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "ExpenseDetail"
+              }
+            },
+            "Property": "ProjectName"
+          }
+        },
+        "type": "Categorical"
+      },
+      {
+        "name": "62fa3121d2b3fb168b4f",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "ExpenseDetail"
+              }
+            },
+            "Property": "ExpenseCategory"
+          }
+        },
+        "type": "Categorical"
+      },
+      {
+        "name": "1e7d0c491a313000cf11",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "ExpenseDetail"
+              }
+            },
+            "Property": "Amount"
+          }
+        },
+        "type": "Advanced"
+      },
+      {
+        "name": "9eeedc854f2912bcba1b",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "ExpenseDetail"
+              }
+            },
+            "Property": "Status"
+          }
+        },
+        "type": "Categorical"
+      }
+    ]
   }
 }

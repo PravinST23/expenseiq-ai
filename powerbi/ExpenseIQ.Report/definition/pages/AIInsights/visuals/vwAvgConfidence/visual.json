@@ -1,12 +1,12 @@
 {
-  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.7.0/schema.json",
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.5.0/schema.json",
   "name": "vwAvgConfidence",
   "position": {
-    "x": 950,
-    "y": 90,
+    "x": 950.55849039193527,
+    "y": 100.1582504786731,
     "z": 1,
-    "height": 140,
-    "width": 295,
+    "height": 100.1582504786731,
+    "width": 294.80541650326421,
     "tabOrder": 4
   },
   "visual": {
@@ -39,5 +39,28 @@
       }
     },
     "drillFilterOtherVisuals": true
+  },
+  "filterConfig": {
+    "filters": [
+      {
+        "name": "9422c6d268d27aa4961a",
+        "field": {
+          "Aggregation": {
+            "Expression": {
+              "Column": {
+                "Expression": {
+                  "SourceRef": {
+                    "Entity": "AIAccuracy"
+                  }
+                },
+                "Property": "Avg Confidence"
+              }
+            },
+            "Function": 0
+          }
+        },
+        "type": "Advanced"
+      }
+    ]
   }
 }

@@ -1,5 +1,5 @@
 {
-  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.7.0/schema.json",
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.5.0/schema.json",
   "name": "vwHeaderBanner",
   "position": {
     "x": 0,
@@ -21,13 +21,14 @@
                   {
                     "value": "ExpenseIQ  –  Executive Expense Dashboard",
                     "textStyle": {
+                      "fontWeight": "bold",
                       "fontFamily": "Segoe UI Semibold",
                       "fontSize": "20pt",
-                      "fontWeight": "bold",
-                      "color": "#FFFFFF"
+                      "color": "#ffffff"
                     }
                   }
-                ]
+                ],
+                "horizontalTextAlignment": "center"
               }
             ]
           }
@@ -63,7 +64,7 @@
                 "color": {
                   "expr": {
                     "Literal": {
-                      "Value": "'#4B2E83'"
+                      "Value": "'#008080'"
                     }
                   }
                 }

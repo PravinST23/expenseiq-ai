@@ -1,12 +1,12 @@
 {
-  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.7.0/schema.json",
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.5.0/schema.json",
   "name": "vwReceiptTable",
   "position": {
-    "x": 20,
-    "y": 610,
+    "x": 0,
+    "y": 236.22228886479505,
     "z": 1,
-    "height": 160,
-    "width": 1240,
+    "height": 553.7050450990796,
+    "width": 625.51662091397736,
     "tabOrder": 7
   },
   "visual": {
@@ -101,8 +101,187 @@
             }
           ]
         }
+      },
+      "sortDefinition": {
+        "sort": [
+          {
+            "field": {
+              "Column": {
+                "Expression": {
+                  "SourceRef": {
+                    "Entity": "ReceiptAIDetail"
+                  }
+                },
+                "Property": "MerchantName"
+              }
+            },
+            "direction": "Ascending"
+          }
+        ]
       }
     },
+    "objects": {
+      "columnWidth": [
+        {
+          "properties": {
+            "value": {
+              "expr": {
+                "Literal": {
+                  "Value": "148.07019769775542D"
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "ReceiptAIDetail.MerchantName"
+          }
+        },
+        {
+          "properties": {
+            "value": {
+              "expr": {
+                "Literal": {
+                  "Value": "74.3146624974595D"
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "ReceiptAIDetail.ProcessingEngine"
+          }
+        },
+        {
+          "properties": {
+            "value": {
+              "expr": {
+                "Literal": {
+                  "Value": "46.98398495415519D"
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "ReceiptAIDetail.PolicyStatus"
+          }
+        },
+        {
+          "properties": {
+            "value": {
+              "expr": {
+                "Literal": {
+                  "Value": "129.7903741088278D"
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "ReceiptAIDetail.AIRecommendation"
+          }
+        },
+        {
+          "properties": {
+            "value": {
+              "expr": {
+                "Literal": {
+                  "Value": "112.20443014875681D"
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "ReceiptAIDetail.ReceiptNumber"
+          }
+        }
+      ]
+    },
     "drillFilterOtherVisuals": true
+  },
+  "filterConfig": {
+    "filters": [
+      {
+        "name": "4f70761627625ce95eb0",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "ReceiptAIDetail"
+              }
+            },
+            "Property": "ReceiptNumber"
+          }
+        },
+        "type": "Categorical"
+      },
+      {
+        "name": "79cac1389bcb21c3f67f",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "ReceiptAIDetail"
+              }
+            },
+            "Property": "MerchantName"
+          }
+        },
+        "type": "Categorical"
+      },
+      {
+        "name": "f2b1f11a5cdd2f98839d",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "ReceiptAIDetail"
+              }
+            },
+            "Property": "Amount"
+          }
+        },
+        "type": "Advanced"
+      },
+      {
+        "name": "f239d29ec7b5481af1f0",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "ReceiptAIDetail"
+              }
+            },
+            "Property": "ProcessingEngine"
+          }
+        },
+        "type": "Categorical"
+      },
+      {
+        "name": "47d6dccf64368b4a76d6",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "ReceiptAIDetail"
+              }
+            },
+            "Property": "PolicyStatus"
+          }
+        },
+        "type": "Categorical"
+      },
+      {
+        "name": "0f724285aa0a6b7b556c",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "ReceiptAIDetail"
+              }
+            },
+            "Property": "AIRecommendation"
+          }
+        },
+        "type": "Categorical"
+      }
+    ]
   }
 }
