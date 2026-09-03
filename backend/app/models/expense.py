@@ -188,6 +188,7 @@ class Expense(BaseModel):
     ai_reviews: Mapped[list["AIAnalysis"]] = relationship(
         "AIAnalysis",
         back_populates="expense",
+        cascade="all, delete-orphan",
     )
 
     # ---------------------------------------------------------
@@ -221,12 +222,14 @@ class Expense(BaseModel):
         back_populates="expense",
         uselist=False,
         foreign_keys="DuplicateCheck.expense_id",
+        cascade="all, delete-orphan",
     )
 
     compliance_check: Mapped["ComplianceCheck"] = relationship(
         "ComplianceCheck",
         back_populates="expense",
         uselist=False,
+        cascade="all, delete-orphan",
     )
 
     

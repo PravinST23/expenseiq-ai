@@ -141,3 +141,32 @@ an exception). Added explicit timeouts to all three AI clients
 (Gemini 30s, Groq 20s, Ollama 120s) so a stuck call fails fast and the
 Hybrid Router's fallback actually engages the way the proposal
 describes ("Hybrid Router auto-switches to Ollama - zero downtime").
+
+## 6. Expense delete cascade bug (not a deviation, a fix)
+
+`DELETE /expenses/{id}` failed with a 500 (`IntegrityError: null value
+in column "expense_id" of relation "duplicate_checks" violates
+not-null constraint`) for any expense that had gone through the full
+AI pipeline. Root cause: on the `Expense` model, the `receipts` and
+`approvals` relationships had `cascade="all, delete-orphan"`, but
+`ai_reviews`, `duplicate_check`, and `compliance_check` did not - so
+SQLAlchemy tried to disassociate those children by nulling out their
+(NOT NULL) `expense_id` FK instead of deleting them. Fixed by adding
+the same cascade to all three relationships in
+`app/models/expense.py`, plus a migration
+(`9853d1a62365_fix_expense_delete_cascade_and_.py`) adding
+`ON DELETE SET NULL` to `duplicate_checks.matched_expense_id` (a
+separate, nullable "matched a different expense" pointer that had no
+DB-level ondelete behavior at all).
+
+Verified live end-to-end, not just by reading the code: created a real
+expense via the API, uploaded a real receipt through it (populating
+all 4 previously-broken child tables via the actual pipeline, not
+direct DB writes), confirmed all 4 rows existed, called
+`DELETE /expenses/{id}`, got `204`, and confirmed all 4 child rows
+plus the expense itself were gone with zero orphans left behind. Added
+a permanent regression test
+(`test_delete_expense_cascades_ai_pipeline_child_rows` in
+`tests/test_expense.py`) that sets up the same 4 child rows and
+asserts the cascade - the existing `test_delete_expense` never caught
+this because it only ever deleted a bare expense with no children.

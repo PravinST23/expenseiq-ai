@@ -137,3 +137,113 @@ def test_delete_expense(client, hr_head_headers):
     response = client.delete(f"{EXPENSE_URL}/{expense_id}")
 
     assert response.status_code == 204
+
+
+def test_delete_expense_cascades_ai_pipeline_child_rows(
+    client,
+    hr_head_headers,
+):
+    """
+    Regression test for a real bug: deleting an expense that has gone
+    through the AI pipeline (receipt + duplicate check + compliance
+    check + AI analysis, each with a NOT NULL expense_id) used to fail
+    with an IntegrityError, because those relationships on the Expense
+    model had no delete cascade - SQLAlchemy tried to null out the FK
+    instead of deleting the child rows. Covers all 4 child tables at
+    once, matching what the real pipeline actually creates per
+    receipt upload.
+    """
+
+    from app.database.session import SessionLocal
+    from app.models.ai_review import AIAnalysis
+    from app.models.compliance_check import ComplianceCheck
+    from app.models.duplicate_check import DuplicateCheck
+    from app.models.receipt import Receipt
+
+    payload, headers = create_expense_payload(client, hr_head_headers)
+
+    create = client.post(f"{EXPENSE_URL}/", json=payload, headers=headers)
+
+    assert create.status_code == 201
+
+    expense_id = create.json()["id"]
+
+    db = SessionLocal()
+
+    try:
+        receipt = Receipt(
+            receipt_number=f"RCT{uuid4().hex[:8]}",
+            expense_id=expense_id,
+            original_filename="test.jpg",
+            stored_filename="test.jpg",
+            file_path="uploads/receipts/test.jpg",
+            file_type="image/jpeg",
+            file_size=100,
+        )
+        db.add(receipt)
+        db.commit()
+        db.refresh(receipt)
+
+        db.add(
+            DuplicateCheck(
+                expense_id=expense_id,
+                duplicate_found=False,
+                confidence_score=0,
+            )
+        )
+        db.add(
+            ComplianceCheck(
+                expense_id=expense_id,
+                policy_status="PASS",
+            )
+        )
+        db.add(
+            AIAnalysis(
+                expense_id=expense_id,
+                receipt_id=receipt.id,
+                policy_status="PASS",
+                requires_manager_approval=False,
+                approval_recommendation="AUTO_APPROVE_RECOMMENDED",
+                ai_provider="gemini",
+                ocr_provider="Tesseract",
+                policy_provider="Groq",
+                pipeline_version="2.0.0",
+            )
+        )
+        db.commit()
+    finally:
+        db.close()
+
+    response = client.delete(f"{EXPENSE_URL}/{expense_id}")
+
+    assert response.status_code == 204
+
+    db = SessionLocal()
+
+    try:
+        assert (
+            db.query(Receipt)
+            .filter(Receipt.expense_id == expense_id)
+            .count()
+            == 0
+        )
+        assert (
+            db.query(DuplicateCheck)
+            .filter(DuplicateCheck.expense_id == expense_id)
+            .count()
+            == 0
+        )
+        assert (
+            db.query(ComplianceCheck)
+            .filter(ComplianceCheck.expense_id == expense_id)
+            .count()
+            == 0
+        )
+        assert (
+            db.query(AIAnalysis)
+            .filter(AIAnalysis.expense_id == expense_id)
+            .count()
+            == 0
+        )
+    finally:
+        db.close()
