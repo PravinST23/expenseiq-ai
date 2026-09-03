@@ -170,3 +170,64 @@ a permanent regression test
 `tests/test_expense.py`) that sets up the same 4 child rows and
 asserts the cascade - the existing `test_delete_expense` never caught
 this because it only ever deleted a bare expense with no children.
+
+## 7. Local pytest was never actually able to run, this whole project (not a deviation, a fix)
+
+The isolated-test-database design (`tests/conftest.py` redirecting to
+a separate `expenseiq_test` database) assumed the app's Postgres user
+had `CREATEDB`. It didn't, on this machine - `psycopg.OperationalError:
+database "expenseiq_test" does not exist`, on every single local run,
+for the entire project up to this point. CI was unaffected (its own
+ephemeral Postgres container creates that database itself), so the
+suite was genuinely green in the environment that actually gates
+merges - but nobody could run it locally to develop against, and (see
+below) it was masking two more real bugs.
+
+**Fix:** isolation is now schema-based, not database-based.
+`Settings.POSTGRES_SCHEMA` (new, optional, unset in every real
+environment) pins a connection's `search_path` to a single schema via
+a `-csearch_path=` libpq option on the connection string; conftest.py
+sets it to a dedicated `pgtest` schema and drops/recreates that schema
+fresh at the start of every session, inside whatever database
+`POSTGRES_DATABASE` already points at. Creating a schema only needs
+ordinary rights on a database the app user already owns - not the
+CREATEDB/superuser-adjacent privilege a separate database needs - so
+this works with zero admin access, locally or in CI.
+
+Running the suite locally for the first time immediately surfaced two
+real, previously-invisible problems it had been hiding:
+
+- `tests/test_quality_validator.py` glob-scanned the app's real,
+  gitignored `uploads/receipts/` upload directory for "known-good"
+  sample images - fragile by construction, since that directory
+  accumulates whatever anyone has actually uploaded through the
+  running app, including a deliberately-poorly-cropped image from an
+  earlier manual quality-validator demo. In CI that glob always
+  matched zero files (a fresh checkout has no uploads directory at
+  all), so `@pytest.mark.skipif` silently skipped all 6 of these
+  tests there - meaning the Receipt Quality Validator had **never
+  once actually run in CI**. Fixed by generating deterministic
+  synthetic receipt images in a tmp dir instead of depending on
+  ambient upload state - hermetic, and now genuinely exercised in CI
+  for the first time. (Getting this synthetic image right also
+  surfaced a real characteristic of the sharpness heuristic itself:
+  Pillow's edge-detect filter leaves a thin unfiltered border around
+  the whole image, and on a small canvas that border's contribution to
+  the variance calculation is large enough to sit above the blur
+  threshold regardless of actual blur - only at a realistic
+  photo-sized resolution does the heuristic behave the way its own
+  docstring describes. Documented inline in the test.)
+- A schema that's only ever created-if-missing (rather than dropped
+  and recreated) accumulates data across repeat local runs -
+  `test_matching_merchant_amount_date_flags_duplicate` failed
+  non-deterministically the first time this was tried, because the
+  duplicate detector's fuzzy merchant-name matching (Python `difflib`,
+  per the proposal's Novelty 2) matched an unrelated expense left over
+  from an earlier run instead of the one the test had just created.
+  Fixed by dropping the schema before recreating it every session.
+
+Verified by running the full suite three consecutive times against a
+freshly-dropped schema after the fix: **113/113 passing, deterministic
+all three times**, plus a real, independently-measured coverage number
+this project never had before - **91.7%** (`pytest --cov=app`),
+against the proposal's own 85%+ target.

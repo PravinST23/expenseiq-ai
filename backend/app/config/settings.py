@@ -34,6 +34,13 @@ class Settings(BaseSettings):
     POSTGRES_DATABASE: str
     POSTGRES_USER: str
     POSTGRES_PASSWORD: str
+
+    # Optional: pin every connection's search_path to a single schema
+    # instead of the server default ("$user", public). Unset in every
+    # real environment - only the test suite sets this, to isolate
+    # itself inside its own schema without needing CREATEDB privilege
+    # (see tests/conftest.py).
+    POSTGRES_SCHEMA: str | None = None
     GEMINI_API_KEY: str
     GROQ_API_KEY: str
     OLLAMA_HOST: str
@@ -72,7 +79,7 @@ class Settings(BaseSettings):
 
         encoded_password = quote_plus(self.POSTGRES_PASSWORD)
 
-        return (
+        url = (
             f"postgresql+psycopg://"
             f"{self.POSTGRES_USER}:"
             f"{encoded_password}@"
@@ -80,6 +87,15 @@ class Settings(BaseSettings):
             f"{self.POSTGRES_PORT}/"
             f"{self.POSTGRES_DATABASE}"
         )
+
+        if self.POSTGRES_SCHEMA:
+
+            search_path_option = quote_plus(
+                f"-csearch_path={self.POSTGRES_SCHEMA}"
+            )
+            url += f"?options={search_path_option}"
+
+        return url
 
     model_config = SettingsConfigDict(
         env_file=".env",

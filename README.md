@@ -134,15 +134,18 @@ Ollama is **not** containerized (see comment in `docker-compose.yml`)
 ## Testing & coverage
 
 ```bash
-# one-time: create the isolated test database (same server/credentials
-# as your dev DB, different name - tests always redirect to this one,
-# regardless of what POSTGRES_DATABASE your .env points at, so pytest
-# can never write into real/dev data - see tests/conftest.py)
-psql -U expenseiq_user -h localhost -c "CREATE DATABASE expenseiq_test;"
-
 cd backend
 pytest --cov=app --cov-report=term-missing
 ```
+
+No setup step needed - tests isolate themselves inside a dedicated
+`pgtest` Postgres *schema* (not a separate database) within whatever
+`POSTGRES_DATABASE` your `.env` already points at, so pytest can never
+write into real/dev data regardless of what that database is, and
+never needs `CREATEDB`/superuser rights, only the ordinary `CREATE
+SCHEMA` privilege an app user already has on a database it owns. The
+schema is dropped and recreated fresh at the start of every run - see
+`tests/conftest.py`.
 
 Tests that require live Gemini/Groq keys or a local Ollama runtime
 are skipped automatically in CI (`CI=true`, set by GitHub Actions) -

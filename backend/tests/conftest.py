@@ -7,23 +7,32 @@ Project: ExpenseIQ
 
 import os
 
-# Tests must NEVER write into the developer's real/dev database - this
-# has to happen before any `app.*` module is imported anywhere (below,
-# or transitively via other test files pytest collects first), because
+# Tests must NEVER write into the developer's real/dev data - this has
+# to happen before any `app.*` module is imported anywhere (below, or
+# transitively via other test files pytest collects first), because
 # `app.config.settings.settings` is a module-level singleton read once
-# at import time. Redirect to an isolated database on the same
-# Postgres server/credentials, regardless of what POSTGRES_DATABASE
-# a local .env points at. Override with POSTGRES_TEST_DATABASE if the
-# default name collides with something.
-os.environ["POSTGRES_DATABASE"] = os.environ.get(
-    "POSTGRES_TEST_DATABASE", "expenseiq_test"
+# at import time.
+#
+# Isolation is schema-based, not database-based: every connection this
+# process opens gets its search_path pinned to a dedicated schema (see
+# Settings.DATABASE_URL / POSTGRES_SCHEMA), inside whatever database
+# POSTGRES_DATABASE already points at - the app's real dev/CI database
+# is left untouched, since an app user only needs ordinary CREATE
+# SCHEMA rights on a database it already owns, not the CREATEDB
+# superuser-adjacent privilege a separate database would need. Override
+# the schema name with POSTGRES_TEST_SCHEMA if it collides with
+# something.
+os.environ["POSTGRES_SCHEMA"] = os.environ.get(
+    "POSTGRES_TEST_SCHEMA", "pgtest"
 )
 
 import uuid
 
 import pytest
+from sqlalchemy import text
 from fastapi.testclient import TestClient
 
+from app.config.settings import settings
 from app.core.security import hash_password
 from app.database.base import Base
 from app.database.session import SessionLocal, engine
@@ -34,12 +43,28 @@ from app.models.employee import Employee
 @pytest.fixture(scope="session", autouse=True)
 def _test_database_schema():
     """
-    Creates every table on the isolated test database if they don't
-    already exist yet (e.g. a fresh `expenseiq_test` a developer just
-    created locally). A no-op against a database Alembic already
-    migrated (CI). `app.database.base` imports every model, so
-    `Base.metadata` is always fully populated here.
+    Drops and recreates the isolated test schema fresh at the start
+    of every pytest session, then creates every table on it.
+
+    A genuinely disposable `expenseiq_test` database would give this
+    for free each time it's (re)created; a persisted schema that's
+    only ever created-if-missing does not - repeat local runs would
+    silently accumulate data across sessions. That's not hypothetical:
+    it's exactly what caused a real, non-deterministic failure the
+    first time this schema was reused across three manual runs in the
+    same session - a fuzzy-duplicate-match test picked up an unrelated
+    expense left over from an earlier run instead of the one it
+    created itself. Dropping first guarantees every run starts from
+    the same clean slate the original database-per-run design assumed.
     """
+
+    with engine.begin() as conn:
+        conn.execute(
+            text(f'DROP SCHEMA IF EXISTS "{settings.POSTGRES_SCHEMA}" CASCADE')
+        )
+        conn.execute(
+            text(f'CREATE SCHEMA "{settings.POSTGRES_SCHEMA}"')
+        )
 
     Base.metadata.create_all(bind=engine)
 
