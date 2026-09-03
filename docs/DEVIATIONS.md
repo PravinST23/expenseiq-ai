@@ -21,9 +21,40 @@ tier (fast/cheap multimodal flash model), same free-tier pricing
 model, same prompt contract. `app/ai/gemini_service.py` documents this
 inline.
 
-**Impact:** None on functionality or cost. `GEMINI_MODEL` is a single
-constant in `gemini_service.py` - trivial to swap again if Google
-retires this one too.
+**Impact (updated 2026-09-03 - this was wrong):** Originally recorded
+as "none," which turned out to be false. Diagnosing a real failure on
+the live Render deployment (every receipt upload reporting "extraction
+was unsuccessful") traced back to a genuine `429 RESOURCE_EXHAUSTED`
+from Google's API on the multimodal `generate_content` call:
+
+```
+Quota exceeded for metric: generate_content_free_tier_requests
+model: gemini-3.5-flash, quotaValue: '20'
+```
+
+`gemini-3.5-flash`'s free tier allows only **20 image-extraction
+requests per day** on this API key/project - not the 250/day the
+proposal's budget and QA sections were written around for
+`gemini-2.5-flash`. That is a materially different constraint, not a
+cosmetic one: real usage (local testing plus populating the live
+demo's data) exhausts it within a single working day. `GEMINI_MODEL`
+is still a single constant in `gemini_service.py`, trivial to swap -
+but the fix here isn't a different model name, it's that any demo/
+grading session needs to budget for a ~20/day multimodal-call ceiling,
+or use a paid-tier key, or accept that some receipts that day will
+fall through to the Ollama fallback (which fails outright on Render,
+since Ollama is local-only there by design - see `render.yaml`).
+
+A related bug this surfaced and was fixed alongside it: when Gemini
+failed AND the Ollama fallback also failed, `hybrid_router.py` let the
+Ollama connection error silently replace the original Gemini failure
+reason in the final exception - so the actually actionable message
+(quota exhausted) never reached the API response, only a generic
+"Ollama unreachable" that's true on Render at all times regardless of
+what actually went wrong that day. Fixed to preserve both reasons;
+covered by a new regression test
+(`test_both_engines_failing_preserves_the_gemini_reason` in
+`tests/test_hybrid_router.py`).
 
 ## 2. Groq model: `llama-3.3-70b-versatile` -> `openai/gpt-oss-120b`
 

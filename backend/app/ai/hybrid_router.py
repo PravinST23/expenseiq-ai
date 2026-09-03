@@ -90,10 +90,24 @@ class HybridRouter:
 
             print(f"[HybridRouter] {reason}")
 
-            return self._run_ollama(
-                image_path,
-                fallback_reason=reason,
-            )
+            try:
+
+                return self._run_ollama(
+                    image_path,
+                    fallback_reason=reason,
+                )
+
+            except Exception as ollama_ex:
+
+                # Both engines failed - the Gemini failure (usually
+                # the actually actionable one, e.g. quota exhaustion)
+                # must not get silently replaced by the Ollama
+                # connection error just because it happened second.
+                # Surface both.
+                raise RuntimeError(
+                    f"{reason} Ollama fallback also failed: "
+                    f"{ollama_ex}"
+                ) from ollama_ex
 
     def _run_ollama(
         self,
