@@ -21,6 +21,18 @@
 # -> it reads this file automatically. Fill in the secret env vars
 # (GEMINI_API_KEY, GROQ_API_KEY) in the Render dashboard after the
 # first deploy.
+#
+# Service name collisions: "expenseiq-backend" and "expenseiq-frontend"
+# are common enough names that they may already be taken by someone
+# else's Render service - if so, Render silently assigns yours a
+# suffixed URL instead (e.g. expenseiq-backend-msck.onrender.com).
+# CORS_ORIGINS_RAW / VITE_API_BASE_URL below are hardcoded to the
+# *unsuffixed* names, so on a fresh deploy where either got suffixed,
+# update both to the real assigned URLs (Render dashboard -> each
+# service's own page shows its live URL at the top) and manually
+# redeploy the frontend afterward - Vite bakes VITE_API_BASE_URL into
+# the JS bundle at build time, so an env var change alone doesn't take
+# effect until the next build.
 
 databases:
   - name: expenseiq-db
@@ -78,7 +90,7 @@ services:
       - key: OLLAMA_MODEL
         value: llava
       - key: CORS_ORIGINS_RAW
-        value: https://expenseiq-frontend.onrender.com
+        value: https://expenseiq-frontend-0lu7.onrender.com
       - key: JWT_SECRET_KEY
         generateValue: true
       - key: JWT_ALGORITHM
@@ -93,7 +105,7 @@ services:
     staticPublishPath: ./frontend/dist
     envVars:
       - key: VITE_API_BASE_URL
-        value: https://expenseiq-backend.onrender.com/api/v1
+        value: https://expenseiq-backend-msck.onrender.com/api/v1
     routes:
       - type: rewrite
         source: /*
